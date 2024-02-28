@@ -1,5 +1,5 @@
-// import * as THREE from './three'; 
-import * as THREE from 'https://github.com/mrdoob/three.js/blob/master/build/three.module.js';
+import * as THREE from './three'; 
+// import * as THREE from 'https://github.com/mrdoob/three.js/blob/master/build/three.module.js';
 
 import { GUI } from './three/addons/libs/lil-gui.module.min.js';
 import { OrbitControls } from './three/addons/controls/OrbitControls.js';
