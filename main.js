@@ -3,11 +3,13 @@ import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-let camera, scene, renderer, videoU, videoE, controls, shaderMaterial;
+let cameraInside, cameraOutside, cameraPosition = 'Inside lookalike sphere', transformation = 'Lorentz', scene, renderer, videoU, videoE, controls, shaderMaterial, geometry, lookalikeSphere, transformationMatrix;
 
 let fovU = 67;
 let fovE = 90;
 let fovS = 50;
+
+let betaX = 0.0, betaY = 0.0, betaZ = 0.0;
 
 init();
 animate();
@@ -15,12 +17,15 @@ animate();
 function init() {
 
 	scene = new THREE.Scene();
-	camera = new THREE.PerspectiveCamera( fovS, window.innerWidth / window.innerHeight, 0.1, 1000 );
+	cameraInside = new THREE.PerspectiveCamera( fovS, window.innerWidth / window.innerHeight, 0.0001, 3 );
+	cameraOutside = new THREE.PerspectiveCamera( fovS, window.innerWidth / window.innerHeight, 0.0001, 10 );
+	cameraOutside.position.z = 4;
 
 	renderer = new THREE.WebGLRenderer();
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	document.body.appendChild( renderer.domElement );
 
+	addOrbitControls();	// add to outside camera
 
 	videoU = document.getElementById( 'videoU' );
 	videoE = document.getElementById( 'videoE' );
@@ -32,7 +37,8 @@ function init() {
 	textureE.colorSpace = THREE.SRGBColorSpace;
 
 	// the lookalike sphere
-	const geometry = new THREE.SphereGeometry( 1, 128, 64 );
+	geometry = new THREE.SphereGeometry( 1, 200, 200 );
+	// geometry.scale(betaX, betaY, betaZ);
 	// const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
 	shaderMaterial = new THREE.ShaderMaterial({
 		side: THREE.DoubleSide,
@@ -76,25 +82,25 @@ function init() {
 					if((abs(zPlaneCoord.x) < tanHalfFovHE) && (abs(zPlaneCoord.y) < tanHalfFovVE)) {
 						gl_FragColor = texture2D(textureE, vec2(0.5-0.5*zPlaneCoord.x/tanHalfFovHE, 0.5-0.5*zPlaneCoord.y/tanHalfFovVE));
 					} else {
-						gl_FragColor = vec4(1.0);
+						gl_FragColor = vec4(0.9, 0.9, 0.9, 1.0);
 					}
 				} else {
 					// user-facing camera
 					if((abs(zPlaneCoord.x) < tanHalfFovHU) && (abs(zPlaneCoord.y) < tanHalfFovVU)) {
 						gl_FragColor = texture2D(textureU, vec2(0.5+0.5*zPlaneCoord.x/tanHalfFovHU, 0.5+0.5*zPlaneCoord.y/tanHalfFovVU));
 					} else {
-						gl_FragColor = vec4(0.5);
+						gl_FragColor = vec4(0.9, 0.0, 0.0, 1.0);
 					}
 				}
 			}
 		`
 	});
-	const lookalikeSphere = new THREE.Mesh( geometry, shaderMaterial );
+	lookalikeSphere = new THREE.Mesh( geometry, shaderMaterial );
+	lookalikeSphere.matrixAutoUpdate = false;	// we will update the matrix ourselves
 	scene.add( lookalikeSphere );
 
-	camera.position.z = 4;
-
-	addOrbitControls();
+	transformationMatrix = new THREE.Matrix4();
+	transformationMatrix.identity();
 
 	createGUI();
 
@@ -131,14 +137,25 @@ function animate() {
 	// cube.rotation.x += 0.01;
 	// cube.rotation.y += 0.01;
 
-	renderer.render( scene, camera );
+
+	updateTransformationMatrix();
+	
+	switch(cameraPosition)
+	{
+		case 'Outside lookalike sphere':
+			renderer.render( scene, cameraOutside );
+			break;
+		case 'Inside lookalike sphere':
+		default:
+			renderer.render( scene, cameraInside );
+	}
 }
 
 
 function addOrbitControls() {
 	// controls
 
-	controls = new OrbitControls( camera, renderer.domElement );
+	controls = new OrbitControls( cameraOutside, renderer.domElement );
 	controls.listenToKeyEvents( window ); // optional
 
 	//controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
@@ -156,26 +173,43 @@ function addOrbitControls() {
 
 // see https://github.com/mrdoob/three.js/blob/master/examples/webgl_animation_skinning_additive_blending.html
 function createGUI() {
-
 	const gui = new GUI();
 
+	var text =
+	{
+    	'Camera position': cameraPosition,
+		'Transformation': transformation
+	}
+	gui.add(text, 'Camera position', { 'Inside lookalike sphere': 'Inside lookalike sphere', 'Outside lookalike sphere': 'Outside lookalike sphere' } ).onChange( (s) => { cameraPosition = s; console.log(s); });
+	gui.add(text, 'Transformation', { 'Lorentz': 'Lorentz', 'Galileo': 'Galileo' } ).onChange( (s) => { transformation = s; console.log(s); });
+
 	const params = {
-	  user_facing_camera: fovU,
-	  environment_facing_camera: fovE,
-	  screen: 150,
-	  z_coordinate: camera.position.z,
-	  point_forward:function(){ pointForward(); }
+		'&beta;<sub>x</sub>': betaX,
+		'&beta;<sub>y</sub>': betaY,
+		'&beta;<sub>z</sub>': betaZ,
+		'user-facing camera': fovU,
+		'env.-facing camera': fovE,
+		'screen': fovS,
+		'<i>z</i> coordinate': cameraOutside.position.z,
+		point_forward:function(){ pointForward(); }
 	}
 
+	const folderBeta = gui.addFolder( '&beta;' );
+	folderBeta.add( params, '&beta;<sub>x</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaX = value; updateTransformationMatrix(); })
+	folderBeta.add( params, '&beta;<sub>y</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaY = value; updateTransformationMatrix(); })
+	folderBeta.add( params, '&beta;<sub>z</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaZ = value; updateTransformationMatrix(); })
+
 	const folderFOV = gui.addFolder( 'FOV' );
-	folderFOV.add( params, 'user_facing_camera', 10, 170, 1).onChange( (fov) => { fovU = fov; updateUniforms(); });   
-	folderFOV.add( params, 'environment_facing_camera', 10, 170, 1).onChange( (fov) => { fovE = fov; updateUniforms(); });   
-	folderFOV.add( params, 'screen', 10, 170, 1).onChange( (fov) => { fovS = fov; camera.fov = 0.5*fovS; camera.updateProjectionMatrix(); });   
+	folderFOV.add( params, 'user-facing camera', 10, 170, 1).onChange( (fov) => { fovU = fov; updateUniforms(); });   
+	folderFOV.add( params, 'env.-facing camera', 10, 170, 1).onChange( (fov) => { fovE = fov; updateUniforms(); });   
+	folderFOV.add( params, 'screen', 10, 170, 1).onChange( (fov) => { fovS = fov; cameraInside.fov = fovS; cameraInside.updateProjectionMatrix(); });   
 	folderFOV.open();
 
+	/*
 	const cameraFolder = gui.addFolder( 'Camera' );
-	cameraFolder.add( params, `z_coordinate`, 0, 5, 0.01).onChange( changeCameraDistance );
+	cameraFolder.add( params, '<i>z</i> coordinate', 0, 5, 0.01).onChange( changeCameraDistance );
 	cameraFolder.add( params, 'point_forward');
+	*/
 }
 
 function updateUniforms() {
@@ -188,12 +222,54 @@ function updateUniforms() {
 function changeCameraDistance(r) {
 	controls.dispose();
 
-	let r0 = Math.sqrt(camera.position.x*camera.position.x + camera.position.y*camera.position.y + camera.position.z*camera.position.z);
-	camera.position.x *= r/r0;
-	camera.position.y *= r/r0;
-	camera.position.z *= r/r0;
+	// current distance of the camera from the origin
+	let r0 = Math.sqrt(cameraOutside.position.x*cameraOutside.position.x + cameraOutside.position.y*cameraOutside.position.y + cameraOutside.position.z*cameraOutside.position.z);
+	
+	// scale the coordinates so that the distance becomes r
+	cameraOutside.position.x *= r/r0;
+	cameraOutside.position.y *= r/r0;
+	cameraOutside.position.z *= r/r0;
 
 	addOrbitControls();
+}
+
+function updateTransformationMatrix() {
+	//transform to theta and phi
+	let beta2 = betaX*betaX + betaY*betaY + betaZ*betaZ;
+	let beta, gamma, theta, phi;
+	if (beta2 >=1 ){
+		/*
+    	let beta0 = Math.sqrt(beta2);
+    	beta = 0.99; 
+    	betaX *= beta/beta0;
+    	betaY *= beta/beta0;
+    	betaZ *= beta/beta0;
+	    console.log(`Beta >= 1, scaling it to 0.99 (beta = (${betaX}, ${betaY}, ${betaZ}))`);
+		*/
+		console.log(`beta (=${Math.sqrt(beta2)}) > 1`);
+  	} else {
+    	beta = Math.sqrt(beta2);
+		gamma = 1/Math.sqrt(1-beta2);
+
+		if (beta===0){
+			theta=0
+			phi=0;
+		} else {
+			theta = Math.asin(-betaY/beta);
+			phi = Math.PI+Math.atan2(-betaX,betaZ);
+		}
+
+		let m = new THREE.Matrix4();
+		transformationMatrix.identity();
+		transformationMatrix.multiply(m.makeRotationY(phi));
+		transformationMatrix.multiply(m.makeRotationX(theta));
+		if(transformation === 'Lorentz') transformationMatrix.multiply(m.makeScale(1.0/gamma, 1.0/gamma, 1.0));
+		transformationMatrix.multiply(m.makeTranslation(new THREE.Vector3(0, 0, beta)));
+		transformationMatrix.multiply(m.makeRotationX(-theta));
+		transformationMatrix.multiply(m.makeRotationY(-phi));
+
+		lookalikeSphere.matrix.copy(transformationMatrix);
+	}
 }
 
 function pointForward() {
