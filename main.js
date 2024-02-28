@@ -4,6 +4,7 @@ import * as THREE from 'https://github.com/mrdoob/three.js/blob/master/build/thr
 import { GUI } from './three/addons/libs/lil-gui.module.min.js';
 import { OrbitControls } from './three/addons/controls/OrbitControls.js';
 
+
 let cameraInside, cameraOutside, cameraPosition = 'Inside lookalike sphere', transformation = 'Lorentz', scene, renderer, videoU, videoE, controls, shaderMaterial, geometry, lookalikeSphere, transformationMatrix;
 
 let fovU = 67;
