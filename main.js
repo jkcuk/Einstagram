@@ -1,7 +1,7 @@
-import * as THREE from './three'; 
+import * as THREE from 'three'; 
 
-import { GUI } from './three/addons/libs/lil-gui.module.min.js';
-import { OrbitControls } from './three/addons/controls/OrbitControls.js';
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 
 let cameraInside, cameraOutside, cameraPosition = 'Inside lookalike sphere', transformation = 'Lorentz', scene, renderer, videoU, videoE, controls, shaderMaterial, geometry, lookalikeSphere, transformationMatrix;
