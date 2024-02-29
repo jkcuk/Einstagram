@@ -246,8 +246,18 @@ function createGUI() {
 	gui.add(text, 'Transformation', { 'Lorentz': 'Lorentz', 'Galileo': 'Galileo' } ).onChange( (s) => { transformation = s; console.log(s); });
 
 	const params = {
-		'Fullscreen': function() { 
-			document.body.requestFullscreen();
+		'Toggle fullscreen': function() {
+			// alert(`Fullscreen: ${document.body.fullscreenElement}, ${document.fullscreenElement}`);
+			if (!document.fullscreenElement) {
+				document.documentElement.requestFullscreen().catch((err) => {
+				  alert(
+					`Error attempting to enable fullscreen mode: ${err.message} (${err.name})`,
+				  );
+				});
+			} else {
+				document.exitFullscreen();
+			}
+			// document.body.requestFullscreen();
 			// renderer.domElement.requestFullscreen(); 
 		},
 		'&beta;<sub>x</sub>': betaX,
@@ -260,7 +270,7 @@ function createGUI() {
 		point_forward:function(){ pointForward(); }
 	}
 
-	gui.add(params, 'Fullscreen');
+	gui.add(params, 'Toggle fullscreen');
 	const folderBeta = gui.addFolder( '&beta;' );
 	folderBeta.add( params, '&beta;<sub>x</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaX = value; updateTransformationMatrix(); })
 	folderBeta.add( params, '&beta;<sub>y</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaY = value; updateTransformationMatrix(); })
