@@ -28,8 +28,11 @@ function init() {
 	cameraOutside.position.z = cameraOutsideDistance;
 
 	renderer = new THREE.WebGLRenderer();
+	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	document.body.appendChild( renderer.domElement );
+
+	window.addEventListener("resize", onWindowResize, false);
 
 	// see https://developer.mozilla.org/en-US/docs/Web/API/ScreenOrientation/change_event
 	screen.orientation.addEventListener("change", (event) => {
@@ -55,8 +58,6 @@ function init() {
 			
 	});
 
-	// see https://developer.mozilla.org/en-US/docs/Web/API/Window/resize_event
-	window.addEventListener("resize", (event) => { alert( `New window size ${window.innerWidth} x ${window.innerHeight}` ); });
 
 	addOrbitControls();	// add to outside camera
 
@@ -280,6 +281,16 @@ function updateScreenFOV(fov)
 	cameraInside.fov = fovS; 
 	cameraOutside.updateProjectionMatrix();
 	cameraInside.updateProjectionMatrix();
+}
+
+function onWindowResize() {
+	cameraInside.aspect = window.innerWidth / window.innerHeight;
+	cameraInside.updateProjectionMatrix();
+
+	cameraOutside.aspect = window.innerWidth / window.innerHeight;
+	cameraOutside.updateProjectionMatrix();
+
+	renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
 function updateUniforms() {
