@@ -3,7 +3,11 @@ import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-let cameraInside, cameraOutside, cameraPosition = 'Inside lookalike sphere', transformation = 'Lorentz', scene, renderer, videoU, videoE, aspectRatioU = 4.0/3.0, aspectRatioE = 4.0/3.0, controls, shaderMaterial, geometry, lookalikeSphere, transformationMatrix;
+let cameraPosition = 'Inside lookalike sphere', transformation = 'Lorentz', scene;
+let aspectRatioU = 4.0/3.0, aspectRatioE = 4.0/3.0;
+let renderer, videoU, videoE;
+let cameraInside, cameraOutside;
+let controls, shaderMaterial, geometry, lookalikeSphere, transformationMatrix;
 
 let fovU = 67;
 let fovE = 90;
@@ -18,6 +22,12 @@ animate();
 
 function init() {
 
+	screen.orientation.addEventListener("change", (event) => {
+		const type = event.target.type;
+		const angle = event.target.angle;
+		console.log(`ScreenOrientation change: ${type}, ${angle} degrees.`);
+	  });
+	  
 	scene = new THREE.Scene();
 	cameraInside = new THREE.PerspectiveCamera( fovS, window.innerWidth / window.innerHeight, 0.0001, 3 );
 	cameraOutside = new THREE.PerspectiveCamera( fovS, window.innerWidth / window.innerHeight, 0.0001, 10 );
@@ -50,7 +60,8 @@ function init() {
 			tanHalfFovHU: { value: 1.0 },
 			tanHalfFovVU: { value: 1.0 },
 			tanHalfFovHE: { value: 1.0 },
-			tanHalfFovVE: { value: 1.0 }
+			tanHalfFovVE: { value: 1.0 },
+			warning: { value: false }
 		},
 		// wireframe: true,
 		vertexShader: `
@@ -77,6 +88,8 @@ function init() {
 			uniform float tanHalfFovVU;
 			uniform float tanHalfFovHE;
 			uniform float tanHalfFovVE;
+
+			uniform bool warning;
 			
 			void main() {
 				if(positionZ < 0.0) {
@@ -94,6 +107,10 @@ function init() {
 						gl_FragColor = vec4(0.9, 0.0, 0.0, 1.0);
 					}
 				}
+				if(warning) {
+					gl_FragColor.r = 1.0;
+					gl_FragColor.gb *= 0.5;
+				}
 			}
 		`
 	});
@@ -107,6 +124,10 @@ function init() {
 	createGUI();
 
 	createVideoFeeds();
+}
+
+function setWarning(warning) {
+	shaderMaterial.uniforms.warning.value = warning;
 }
 
 function animate() {
@@ -276,6 +297,7 @@ function updateTransformationMatrix() {
     	betaZ *= beta/beta0;
 	    console.log(`Beta >= 1, scaling it to 0.99 (beta = (${betaX}, ${betaY}, ${betaZ}))`);
 		*/
+		setWarning(true);
 		console.log(`beta (=${Math.sqrt(beta2)}) > 1`);
   	} else {
     	beta = Math.sqrt(beta2);
@@ -307,6 +329,9 @@ function updateTransformationMatrix() {
 
 		// set the lookalike sphere's transformation matrix to the matrix we just calculated
 		lookalikeSphere.matrix.copy(transformationMatrix);
+
+		setWarning(false);
+		updateUniforms();
 	}
 }
 
