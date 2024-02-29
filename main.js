@@ -47,7 +47,7 @@ function init() {
 		uniforms: { 
 			textureU: { value: textureU }, 
 			textureE: { value: textureE },
-			tanHalfFovHU: { value: 0.5*fovU*Math.PI/180.0 },
+			tanHalfFovHU: { value: 1.0 },
 			tanHalfFovVU: { value: 1.0 },
 			tanHalfFovHE: { value: 1.0 },
 			tanHalfFovVE: { value: 1.0 }
@@ -142,7 +142,7 @@ function createVideoFeeds() {
 
 			videoU.addEventListener("playing", () => {
 				aspectRatioU = videoU.videoWidth / videoU.videoHeight;
-				alert(`aspectRatioU = ${aspectRatioU}, ${videoU.videoWidth} x ${videoU.videoHeight}`);
+				console.log(`aspectRatioU = ${aspectRatioU}, ${videoU.videoWidth} x ${videoU.videoHeight}`);
 				updateUniforms();
 			  });
 		} ).catch( function ( error ) {
@@ -158,7 +158,7 @@ function createVideoFeeds() {
 
 			videoE.addEventListener("playing", () => {
 				aspectRatioE = videoE.videoWidth / videoE.videoHeight;
-				alert(`aspectRatioE = ${aspectRatioE}, ${videoE.videoWidth} x ${videoE.videoHeight}`);
+				console.log(`aspectRatioE = ${aspectRatioE}, ${videoE.videoWidth} x ${videoE.videoHeight}`);
 				updateUniforms();
 			  });
 		} ).catch( function ( error ) {
@@ -242,9 +242,9 @@ function updateScreenFOV(fov)
 
 function updateUniforms() {
 	shaderMaterial.uniforms.tanHalfFovHU.value = Math.tan(0.5*fovU*Math.PI/180.0);
-	shaderMaterial.uniforms.tanHalfFovVU.value = Math.tan(0.5*fovU*Math.PI/180.0/aspectRatioU);
+	shaderMaterial.uniforms.tanHalfFovVU.value = Math.tan(0.5*fovU*Math.PI/180.0)/aspectRatioU;
 	shaderMaterial.uniforms.tanHalfFovHE.value = Math.tan(0.5*fovE*Math.PI/180.0);
-	shaderMaterial.uniforms.tanHalfFovVE.value = Math.tan(0.5*fovE*Math.PI/180.0/aspectRatioE);
+	shaderMaterial.uniforms.tanHalfFovVE.value = Math.tan(0.5*fovE*Math.PI/180.0)/aspectRatioE;
 }
 
 /*
