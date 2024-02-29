@@ -1,16 +1,17 @@
-import * as THREE from 'three'; 
+import * as THREE from 'three';
 
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-
-let cameraInside, cameraOutside, cameraPosition = 'Inside lookalike sphere', transformation = 'Lorentz', scene, renderer, videoU, videoE, controls, shaderMaterial, geometry, lookalikeSphere, transformationMatrix;
+let cameraInside, cameraOutside, cameraPosition = 'Inside lookalike sphere', transformation = 'Lorentz', scene, renderer, videoU, videoE, aspectRatioU = 4.0/3.0, aspectRatioE = 4.0/3.0, controls, shaderMaterial, geometry, lookalikeSphere, transformationMatrix;
 
 let fovU = 67;
 let fovE = 90;
 let fovS = 50;
 
 let betaX = 0.0, betaY = 0.0, betaZ = 0.0;
+
+let cameraOutsideDistance = 4.0;
 
 init();
 animate();
@@ -20,7 +21,7 @@ function init() {
 	scene = new THREE.Scene();
 	cameraInside = new THREE.PerspectiveCamera( fovS, window.innerWidth / window.innerHeight, 0.0001, 3 );
 	cameraOutside = new THREE.PerspectiveCamera( fovS, window.innerWidth / window.innerHeight, 0.0001, 10 );
-	cameraOutside.position.z = 4;
+	cameraOutside.position.z = cameraOutsideDistance;
 
 	renderer = new THREE.WebGLRenderer();
 	renderer.setSize( window.innerWidth, window.innerHeight );
@@ -105,30 +106,7 @@ function init() {
 
 	createGUI();
 
-	// see https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_video_webcam.html
-	if ( navigator.mediaDevices && navigator.mediaDevices.getUserMedia ) {
-		// user-facing camera
-		const constraintsU = { video: { width: 1280, height: 720, facingMode: 'user' } };
-		navigator.mediaDevices.getUserMedia( constraintsU ).then( function ( stream ) {
-			// apply the stream to the video element used in the texture
-			videoU.srcObject = stream;
-			videoU.play();
-		} ).catch( function ( error ) {
-			console.error( 'Unable to access the camera/webcam.', error );
-		} );
-
-		// environment-facing camera
-		const constraintsE = { video: { width: 1280, height: 720, facingMode: 'environment' } };
-		navigator.mediaDevices.getUserMedia( constraintsE ).then( function ( stream ) {
-			// apply the stream to the video element used in the texture
-			videoE.srcObject = stream;
-			videoE.play();
-		} ).catch( function ( error ) {
-			console.error( 'Unable to access the camera/webcam.', error );
-		} );
-	} else {
-		console.error( 'MediaDevices interface not available.' );
-	}
+	createVideoFeeds();
 }
 
 function animate() {
@@ -152,6 +130,44 @@ function animate() {
 	}
 }
 
+function createVideoFeeds() {
+	// see https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_video_webcam.html
+	if ( navigator.mediaDevices && navigator.mediaDevices.getUserMedia ) {
+		// user-facing camera
+		const constraintsU = { video: { width: {ideal: 4096}, height: {ideal: 4096}, facingMode: 'user' } };
+		navigator.mediaDevices.getUserMedia( constraintsU ).then( function ( stream ) {
+			// apply the stream to the video element used in the texture
+			videoU.srcObject = stream;
+			videoU.play();
+
+			videoU.addEventListener("playing", () => {
+				aspectRatioU = videoU.videoWidth / videoU.videoHeight;
+				alert(`aspectRatioU = ${aspectRatioU}, ${videoU.videoWidth} x ${videoU.videoHeight}`);
+				updateUniforms();
+			  });
+		} ).catch( function ( error ) {
+			console.error( 'Unable to access the camera/webcam.', error );
+		} );
+
+		// environment-facing camera
+		const constraintsE = { video: {width: {ideal: 4096}, height: {ideal: 4096}, facingMode: 'environment' } };
+		navigator.mediaDevices.getUserMedia( constraintsE ).then( function ( stream ) {
+			// apply the stream to the video element used in the texture
+			videoE.srcObject = stream;
+			videoE.play();
+
+			videoE.addEventListener("playing", () => {
+				aspectRatioE = videoE.videoWidth / videoE.videoHeight;
+				alert(`aspectRatioE = ${aspectRatioE}, ${videoE.videoWidth} x ${videoE.videoHeight}`);
+				updateUniforms();
+			  });
+		} ).catch( function ( error ) {
+			console.error( 'Unable to access the camera/webcam.', error );
+		} );
+	} else {
+		console.error( 'MediaDevices interface not available.' );
+	}
+}
 
 function addOrbitControls() {
 	// controls
@@ -166,8 +182,10 @@ function addOrbitControls() {
 
 	controls.screenSpacePanning = false;
 
-	controls.minDistance = 1;
-	controls.maxDistance = 20;
+	// allowing control of the distance can result in the view being no longer 
+	// centred on the origin, so don't allow it
+	controls.minDistance = cameraOutsideDistance;
+	controls.maxDistance = cameraOutsideDistance;
 
 	controls.maxPolarAngle = Math.PI;
 }
@@ -203,7 +221,7 @@ function createGUI() {
 	const folderFOV = gui.addFolder( 'FOV' );
 	folderFOV.add( params, 'user-facing camera', 10, 170, 1).onChange( (fov) => { fovU = fov; updateUniforms(); });   
 	folderFOV.add( params, 'env.-facing camera', 10, 170, 1).onChange( (fov) => { fovE = fov; updateUniforms(); });   
-	folderFOV.add( params, 'screen', 10, 170, 1).onChange( (fov) => { fovS = fov; cameraInside.fov = fovS; cameraInside.updateProjectionMatrix(); });   
+	folderFOV.add( params, 'screen', 10, 170, 1).onChange( updateScreenFOV );   
 	folderFOV.open();
 
 	/*
@@ -213,13 +231,23 @@ function createGUI() {
 	*/
 }
 
-function updateUniforms() {
-	shaderMaterial.uniforms.tanHalfFovHU.value = Math.tan(0.5*fovU*Math.PI/180.0);
-	shaderMaterial.uniforms.tanHalfFovVU.value = Math.tan(0.5*fovU*Math.PI/180.0);
-	shaderMaterial.uniforms.tanHalfFovHE.value = Math.tan(0.5*fovE*Math.PI/180.0);
-	shaderMaterial.uniforms.tanHalfFovVE.value = Math.tan(0.5*fovE*Math.PI/180.0);
+function updateScreenFOV(fov)
+{
+	fovS = fov;
+	cameraOutside.fov = fovS;
+	cameraInside.fov = fovS; 
+	cameraOutside.updateProjectionMatrix();
+	cameraInside.updateProjectionMatrix();
 }
 
+function updateUniforms() {
+	shaderMaterial.uniforms.tanHalfFovHU.value = Math.tan(0.5*fovU*Math.PI/180.0);
+	shaderMaterial.uniforms.tanHalfFovVU.value = Math.tan(0.5*fovU*Math.PI/180.0/aspectRatioU);
+	shaderMaterial.uniforms.tanHalfFovHE.value = Math.tan(0.5*fovE*Math.PI/180.0);
+	shaderMaterial.uniforms.tanHalfFovVE.value = Math.tan(0.5*fovE*Math.PI/180.0/aspectRatioE);
+}
+
+/*
 function changeCameraDistance(r) {
 	controls.dispose();
 
@@ -233,6 +261,7 @@ function changeCameraDistance(r) {
 
 	addOrbitControls();
 }
+*/
 
 function updateTransformationMatrix() {
 	//transform to theta and phi
@@ -260,19 +289,28 @@ function updateTransformationMatrix() {
 			phi = Math.PI+Math.atan2(-betaX,betaZ);
 		}
 
-		let m = new THREE.Matrix4();
-		transformationMatrix.identity();
+		// re-calculate the transformation matrix
+		let m = new THREE.Matrix4();	
+		// start from the identity matrix
+		transformationMatrix.identity();	
+		// rotate the beta direction into the z direction
 		transformationMatrix.multiply(m.makeRotationY(phi));
 		transformationMatrix.multiply(m.makeRotationX(theta));
+		// scale by 1/gamma in the directions perpendicular to beta, i.e. x and y, 
+		// if the Lorentz transformation is chosen
 		if(transformation === 'Lorentz') transformationMatrix.multiply(m.makeScale(1.0/gamma, 1.0/gamma, 1.0));
+		// translate by beta in the direction of beta, i.e. z
 		transformationMatrix.multiply(m.makeTranslation(new THREE.Vector3(0, 0, beta)));
+		// rotate back to the original orientation
 		transformationMatrix.multiply(m.makeRotationX(-theta));
 		transformationMatrix.multiply(m.makeRotationY(-phi));
 
+		// set the lookalike sphere's transformation matrix to the matrix we just calculated
 		lookalikeSphere.matrix.copy(transformationMatrix);
 	}
 }
 
+/*
 function pointForward() {
 	controls.dispose();
 	// controls.enabled = false;
@@ -283,21 +321,21 @@ function pointForward() {
 	addOrbitControls();
 	// controls.update();
 	// controls.enabled = true;
-	/*
-	let minPolarAngle = controls.minPolarAngle;
-	let maxPolarAngle = controls.maxPolarAngle;
-	let minAzimuthalAngle = controls.minAzimuthalAngle;
-	let maxAzimuthalAngle = controls.maxAzimuthalAngle;
 
-	controls.minPolarAngle = controls.maxPolarAngle = 0.5*Math.PI; 
-	controls.minAzimuthalAngle = controls.maxAzimuthalAngle = 0.0;
-	controls.update();
+	// let minPolarAngle = controls.minPolarAngle;
+	// let maxPolarAngle = controls.maxPolarAngle;
+	// let minAzimuthalAngle = controls.minAzimuthalAngle;
+	// let maxAzimuthalAngle = controls.maxAzimuthalAngle;
 
-	controls.minPolarAngle = minPolarAngle;
-	controls.maxPolarAngle = maxPolarAngle;
-	controls.minAzimuthalAngle = minAzimuthalAngle;
-	controls.maxAzimuthalAngle = maxAzimuthalAngle;
+	// controls.minPolarAngle = controls.maxPolarAngle = 0.5*Math.PI; 
+	// controls.minAzimuthalAngle = controls.maxAzimuthalAngle = 0.0;
+	// controls.update();
 
-	controls.position.set
-	*/
+	// controls.minPolarAngle = minPolarAngle;
+	// controls.maxPolarAngle = maxPolarAngle;
+	// controls.minAzimuthalAngle = minAzimuthalAngle;
+	// controls.maxAzimuthalAngle = maxAzimuthalAngle;
+
+	// controls.position.set
 }
+*/
