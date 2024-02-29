@@ -34,29 +34,29 @@ function init() {
 
 	window.addEventListener("resize", onWindowResize, false);
 
-	// see https://developer.mozilla.org/en-US/docs/Web/API/ScreenOrientation/change_event
-	screen.orientation.addEventListener("change", (event) => {
-		const type = event.target.type;
-		const angle = event.target.angle;
-		alert(`ScreenOrientation change: ${type}, ${angle} degrees.  New window size ${window.innerWidth} x ${window.innerHeight}.`);
+	// // see https://developer.mozilla.org/en-US/docs/Web/API/ScreenOrientation/change_event
+	// screen.orientation.addEventListener("change", (event) => {
+	// 	const type = event.target.type;
+	// 	const angle = event.target.angle;
+	// 	alert(`ScreenOrientation change: ${type}, ${angle} degrees.  New window size ${window.innerWidth} x ${window.innerHeight}.`);
 
-		// see https://developer.mozilla.org/en-US/docs/Web/API/Screen/orientation
-		// switch (screen.orientation.type) {
-		// 	case "landscape-primary":
-		// 		console.log("That looks good.");
-		// 		break;
-		// 	case "landscape-secondary":
-		// 		console.log("Mmmh… the screen is upside down!");
-		// 		break;
-		// 	case "portrait-secondary":
-		// 	case "portrait-primary":
-		// 		console.log("Mmmh… you should rotate your device to landscape");
-		// 		break;
-		// 	default:
-		// 		console.log("The orientation API isn't supported in this browser :(");
-		// 	}
+	// 	// see https://developer.mozilla.org/en-US/docs/Web/API/Screen/orientation
+	// 	// switch (screen.orientation.type) {
+	// 	// 	case "landscape-primary":
+	// 	// 		console.log("That looks good.");
+	// 	// 		break;
+	// 	// 	case "landscape-secondary":
+	// 	// 		console.log("Mmmh… the screen is upside down!");
+	// 	// 		break;
+	// 	// 	case "portrait-secondary":
+	// 	// 	case "portrait-primary":
+	// 	// 		console.log("Mmmh… you should rotate your device to landscape");
+	// 	// 		break;
+	// 	// 	default:
+	// 	// 		console.log("The orientation API isn't supported in this browser :(");
+	// 	// 	}
 			
-	});
+	// });
 
 
 	addOrbitControls();	// add to outside camera
