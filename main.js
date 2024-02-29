@@ -22,12 +22,6 @@ animate();
 
 function init() {
 
-	screen.orientation.addEventListener("change", (event) => {
-		const type = event.target.type;
-		const angle = event.target.angle;
-		console.log(`ScreenOrientation change: ${type}, ${angle} degrees.`);
-	  });
-	  
 	scene = new THREE.Scene();
 	cameraInside = new THREE.PerspectiveCamera( fovS, window.innerWidth / window.innerHeight, 0.0001, 3 );
 	cameraOutside = new THREE.PerspectiveCamera( fovS, window.innerWidth / window.innerHeight, 0.0001, 10 );
@@ -36,6 +30,33 @@ function init() {
 	renderer = new THREE.WebGLRenderer();
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	document.body.appendChild( renderer.domElement );
+
+	// see https://developer.mozilla.org/en-US/docs/Web/API/ScreenOrientation/change_event
+	screen.orientation.addEventListener("change", (event) => {
+		const type = event.target.type;
+		const angle = event.target.angle;
+		alert(`ScreenOrientation change: ${type}, ${angle} degrees.  New window size ${window.innerWidth} x ${window.innerHeight}.`);
+
+		// see https://developer.mozilla.org/en-US/docs/Web/API/Screen/orientation
+		// switch (screen.orientation.type) {
+		// 	case "landscape-primary":
+		// 		console.log("That looks good.");
+		// 		break;
+		// 	case "landscape-secondary":
+		// 		console.log("Mmmh… the screen is upside down!");
+		// 		break;
+		// 	case "portrait-secondary":
+		// 	case "portrait-primary":
+		// 		console.log("Mmmh… you should rotate your device to landscape");
+		// 		break;
+		// 	default:
+		// 		console.log("The orientation API isn't supported in this browser :(");
+		// 	}
+			
+	});
+
+	// see https://developer.mozilla.org/en-US/docs/Web/API/Window/resize_event
+	window.addEventListener("resize", (event) => { alert( `New window size ${window.innerWidth} x ${window.innerHeight}` ); });
 
 	addOrbitControls();	// add to outside camera
 
