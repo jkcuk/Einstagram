@@ -250,6 +250,8 @@ function createGUI() {
 					`Error attempting to enable fullscreen mode: ${err.message} (${err.name})`,
 				  );
 				});
+				// allow screen orientation changes
+				screen.orientation.unlock();
 			} else {
 				document.exitFullscreen();
 			}
