@@ -78,38 +78,46 @@ function createVideoFeeds() {
 	// see https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_video_webcam.html
 	if ( navigator.mediaDevices && navigator.mediaDevices.getUserMedia ) {
 		// user-facing camera
-		const constraintsU = { video: { width: {ideal: 4096}, height: {ideal: 4096}, facingMode: 'user' } };
+		const constraintsU = { video: { 
+			width: {ideal: 10000}, 
+			height: {ideal: 10000}, 
+			facingMode: {ideal: 'user'} 
+		} };
 		navigator.mediaDevices.getUserMedia( constraintsU ).then( function ( stream ) {
 			// apply the stream to the video element used in the texture
 			videoU.srcObject = stream;
 			videoU.play();
 
 			videoU.addEventListener("playing", () => {
-				console.log(`video stream playing, size ${videoU.videoWidth} x ${videoU.videoHeight}`);
+				console.log(`Video stream playing, size ${videoU.videoWidth} x ${videoU.videoHeight}`);
 				aspectRatioU = videoU.videoWidth / videoU.videoHeight;
 				updateUniforms();
 			  });
 		} ).catch( function ( error ) {
-			console.error( 'Unable to access the camera/webcam.', error );
+			alert( 'Unable to access camera/webcam.', error );
 		} );
 
 		// environment-facing camera
-		const constraintsE = { video: {width: {ideal: 4096}, height: {ideal: 4096}, facingMode: 'environment' } };
+		const constraintsE = { video: {
+			width: {ideal: 10000}, 
+			height: {ideal: 10000}, 
+			facingMode: {ideal: 'environment'}
+		} };
 		navigator.mediaDevices.getUserMedia( constraintsE ).then( function ( stream ) {
 			// apply the stream to the video element used in the texture
 			videoE.srcObject = stream;
 			videoE.play();
 
 			videoE.addEventListener("playing", () => {
-				console.log(`video stream playing, size ${videoE.videoWidth} x ${videoE.videoHeight}`);
+				console.log(`Video stream playing, size ${videoE.videoWidth} x ${videoE.videoHeight}`);
 				aspectRatioE = videoE.videoWidth / videoE.videoHeight;
 				updateUniforms();
 			  });
 		} ).catch( function ( error ) {
-			console.error( 'Unable to access the camera/webcam.', error );
+			alert( 'Unable to access camera/webcam.', error );
 		} );
 	} else {
-		console.error( 'MediaDevices interface not available.' );
+		alert( 'MediaDevices interface, which is required for video streams from device cameras, not available.' );
 	}
 }
 
