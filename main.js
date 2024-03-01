@@ -22,6 +22,25 @@ animate();
 
 function init() {
 
+	// list all the media devices (so that, maybe, later we can select cameras from this list)
+	// if (!navigator.mediaDevices?.enumerateDevices) {
+	// 	console.log("enumerateDevices() not supported.");
+	//   } else {
+	// 	// List cameras and microphones.
+	// 	let devices = navigator.mediaDevices.enumerateDevices();
+	// 	devices = devices.filter((device) => device.kind == "videoinput");
+	// 	navigator.mediaDevices
+	// 	  .enumerateDevices()
+	// 	  .then((devices) => {
+	// 		devices.forEach((device) => {
+	// 		  console.log(`${device.kind}: ${device.label} id = ${device.deviceId}`);
+	// 		});
+	// 	  })
+	// 	  .catch((err) => {
+	// 		console.error(`${err.name}: ${err.message}`);
+	// 	  });
+	// }
+
 	scene = new THREE.Scene();
 	let windowAspectRatio = window.innerWidth / window.innerHeight;
 	cameraInside = new THREE.PerspectiveCamera( 10, windowAspectRatio, 0.0001, 3 );
@@ -81,6 +100,7 @@ function createVideoFeeds() {
 	if ( navigator.mediaDevices && navigator.mediaDevices.getUserMedia ) {
 		// user-facing camera
 		const constraintsU = { video: { 
+			// 'deviceId': cameraId,	// this could be the device ID selected 
 			width: {ideal: 10000}, 
 			height: {ideal: 10000}, 
 			facingMode: {ideal: 'user'},
@@ -92,7 +112,7 @@ function createVideoFeeds() {
 			videoU.play();
 
 			videoU.addEventListener("playing", () => {
-				console.log(`Video stream playing, size ${videoU.videoWidth} x ${videoU.videoHeight}`);
+				// console.log(`Video stream playing, size ${videoU.videoWidth} x ${videoU.videoHeight}`);
 				aspectRatioU = videoU.videoWidth / videoU.videoHeight;
 				updateUniforms();
 			  });
@@ -113,7 +133,7 @@ function createVideoFeeds() {
 			videoE.play();
 
 			videoE.addEventListener("playing", () => {
-				console.log(`Video stream playing, size ${videoE.videoWidth} x ${videoE.videoHeight}`);
+				// console.log(`Video stream playing, size ${videoE.videoWidth} x ${videoE.videoHeight}`);
 				aspectRatioE = videoE.videoWidth / videoE.videoHeight;
 				updateUniforms();
 			  });
@@ -333,7 +353,7 @@ function screenChanged() {
 	// make sure the camera changes take effect
 	cameraOutside.updateProjectionMatrix();
 	cameraInside.updateProjectionMatrix();
-	console.log(`window aspect ratio ${windowAspectRatio}, fovS ${fovS}, camera (vertical) fov ${verticalFOV}`);
+	// console.log(`window aspect ratio ${windowAspectRatio}, fovS ${fovS}, camera (vertical) fov ${verticalFOV}`);
 }
 
 function onWindowResize() {
