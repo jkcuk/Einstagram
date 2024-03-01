@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-let cameraPosition = 'Inside lookalike sphere', transformation = 'Lorentz', scene;
+let camera = 'Inside lookalike sphere', transformation = 'Lorentz', scene;
 let aspectRatioU = 4.0/3.0, aspectRatioE = 4.0/3.0;
 let renderer, videoU, videoE;
 let cameraInside, cameraOutside;
@@ -27,7 +27,7 @@ function init() {
 	cameraInside = new THREE.PerspectiveCamera( 10, windowAspectRatio, 0.0001, 3 );
 	cameraOutside = new THREE.PerspectiveCamera( 10, windowAspectRatio, 0.0001, 10 );
 	cameraOutside.position.z = cameraOutsideDistance;
-	setScreenFOV(fovS);
+	screenChanged();
 	
 	renderer = new THREE.WebGLRenderer();
 	renderer.setPixelRatio(window.devicePixelRatio);
@@ -62,7 +62,7 @@ function animate() {
 	updateTransformationMatrix();
 	
 	// set the camera, either to the inside camera or the outside camera
-	switch(cameraPosition)
+	switch(camera)
 	{
 		case 'Outside lookalike sphere':
 			renderer.render( scene, cameraOutside );
@@ -235,10 +235,10 @@ function createGUI() {
 
 	var text =
 	{
-    	'Camera position': cameraPosition,
+    	'Camera position': camera,
 		'Transformation': transformation
 	}
-	gui.add(text, 'Camera position', { 'Inside lookalike sphere': 'Inside lookalike sphere', 'Outside lookalike sphere': 'Outside lookalike sphere' } ).onChange( changeCameraPosition );
+	gui.add(text, 'Camera position', { 'Inside lookalike sphere': 'Inside lookalike sphere', 'Outside lookalike sphere': 'Outside lookalike sphere' } ).onChange( changeCamera );
 	gui.add(text, 'Transformation', { 'Lorentz': 'Lorentz', 'Galileo': 'Galileo' } ).onChange( (s) => { transformation = s; console.log(s); });
 
 	const params = {
@@ -292,15 +292,16 @@ function setScreenFOV(fov) {
 }
 
 function screenChanged() {
-	// fovS = fov;	// horizontal or vertical FOV, whichever is greater
+	// in case the screen size has changed
+	if(renderer) renderer.setSize(window.innerWidth, window.innerHeight);
 
-renderer.setSize(window.innerWidth, window.innerHeight);
-
+	// if the screen orientation changes, width and height swap places, so the aspect ratio changes
 	let windowAspectRatio = window.innerWidth / window.innerHeight;
 	cameraInside.aspect = windowAspectRatio;
 	cameraOutside.aspect = windowAspectRatio;
 
-	// re-calculate the camera FOV, in case the orientation has changed
+	// fovS is the screen's horizontal or vertical FOV, whichever is greater;
+	// re-calculate the camera FOV, which is the *vertical* fov
 	let verticalFOV;
 	if(windowAspectRatio > 1.0) {
 		// fovS is horizontal FOV; convert to get correct vertical FOV
@@ -308,27 +309,34 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 	} else {
 		// fovS is already vertical FOV
 		verticalFOV = fovS;
+		// alert(`vertical FOV ${verticalFOV}`);
 	}
 	cameraOutside.fov = verticalFOV;
 	cameraInside.fov = verticalFOV;
+
+	// make sure the camera changes take effect
 	cameraOutside.updateProjectionMatrix();
 	cameraInside.updateProjectionMatrix();
 	console.log(`window aspect ratio ${windowAspectRatio}, fovS ${fovS}, camera (vertical) fov ${verticalFOV}`);
 }
 
 function onWindowResize() {
+<<<<<<< HEAD
+	screenChanged();
+=======
 	// cameraInside.aspect = window.innerWidth / window.innerHeight;
 	// cameraOutside.aspect = window.innerWidth / window.innerHeight;
 	// setScreenFOV(fovS);
   screenChanged();
 
 	// renderer.setSize(window.innerWidth, window.innerHeight);
+>>>>>>> 6c6825f9b8ea6821f3603c2beaaafac9869540dc
 }
 
-function changeCameraPosition(newCameraPosition) {
-	cameraPosition = newCameraPosition;
+function changeCamera(newCamera) {
+	camera = newCamera;
 	
-	controls.enabled = (cameraPosition == 'Outside lookalike sphere');
+	controls.enabled = (camera == 'Outside lookalike sphere');
 }
 
 function updateUniforms() {
