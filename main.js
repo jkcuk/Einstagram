@@ -81,7 +81,8 @@ function createVideoFeeds() {
 		const constraintsU = { video: { 
 			width: {ideal: 10000}, 
 			height: {ideal: 10000}, 
-			facingMode: {ideal: 'user'} 
+			facingMode: {ideal: 'user'},
+			// aspectRatio: { exact: width / height }
 		} };
 		navigator.mediaDevices.getUserMedia( constraintsU ).then( function ( stream ) {
 			// apply the stream to the video element used in the texture
@@ -101,7 +102,8 @@ function createVideoFeeds() {
 		const constraintsE = { video: {
 			width: {ideal: 10000}, 
 			height: {ideal: 10000}, 
-			facingMode: {ideal: 'environment'}
+			facingMode: {ideal: 'environment'},
+			// aspectRatio: { exact: width / height }
 		} };
 		navigator.mediaDevices.getUserMedia( constraintsE ).then( function ( stream ) {
 			// apply the stream to the video element used in the texture
@@ -307,10 +309,25 @@ function changeCameraPosition(newCameraPosition) {
 }
 
 function updateUniforms() {
-	shaderMaterial.uniforms.tanHalfFovHU.value = Math.tan(0.5*fovU*Math.PI/180.0);
-	shaderMaterial.uniforms.tanHalfFovVU.value = Math.tan(0.5*fovU*Math.PI/180.0)/aspectRatioU;
-	shaderMaterial.uniforms.tanHalfFovHE.value = Math.tan(0.5*fovE*Math.PI/180.0);
-	shaderMaterial.uniforms.tanHalfFovVE.value = Math.tan(0.5*fovE*Math.PI/180.0)/aspectRatioE;
+	if(aspectRatioU > 1.0) {
+		// horizontal orientation
+		shaderMaterial.uniforms.tanHalfFovHU.value = Math.tan(0.5*fovU*Math.PI/180.0);
+		shaderMaterial.uniforms.tanHalfFovVU.value = Math.tan(0.5*fovU*Math.PI/180.0)/aspectRatioU;
+	} else {
+		// vertical orientation
+		shaderMaterial.uniforms.tanHalfFovHU.value = Math.tan(0.5*fovU*Math.PI/180.0)*aspectRatio;
+		shaderMaterial.uniforms.tanHalfFovVU.value = Math.tan(0.5*fovU*Math.PI/180.0);
+	}
+
+	if(aspectRatioE > 1.0) {
+		// horizontal orientation
+		shaderMaterial.uniforms.tanHalfFovHE.value = Math.tan(0.5*fovE*Math.PI/180.0);
+		shaderMaterial.uniforms.tanHalfFovVE.value = Math.tan(0.5*fovE*Math.PI/180.0)/aspectRatioE;
+	} else {
+		// vertical orientation
+		shaderMaterial.uniforms.tanHalfFovHE.value = Math.tan(0.5*fovE*Math.PI/180.0)*aspectRatioE;
+		shaderMaterial.uniforms.tanHalfFovVE.value = Math.tan(0.5*fovE*Math.PI/180.0);
+	}
 }
 
 /*
