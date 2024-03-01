@@ -287,9 +287,16 @@ function createGUI() {
 
 function updateScreenFOV(fov)
 {
-	fovS = fov;	// *horizontal* FOV
+	fovS = fov;	// horizontal or vertical FOV, whichever is greater
 	let windowAspectRatio = window.innerWidth / window.innerHeight;
-	let verticalFOV = 2.0*Math.atan(Math.tan(0.5*fovS*Math.PI/180.0)/windowAspectRatio)*180.0/Math.PI;
+	let verticalFOV;
+	if(windowAspectRatio > 1) {
+		// fovS is horizontal FOV; convert to get correct vertical FOV
+		verticalFOV = 2.0*Math.atan(Math.tan(0.5*fovS*Math.PI/180.0)/windowAspectRatio)*180.0/Math.PI;
+	} else {
+		// fovS is already vertical FOV
+		verticalFOV = fovS;
+	}
 	cameraOutside.fov = verticalFOV;	// convert to vertical FOV
 	cameraInside.fov = verticalFOV; 	// convert to vertiacl FOV
 	cameraOutside.updateProjectionMatrix();
