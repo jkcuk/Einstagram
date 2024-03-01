@@ -297,11 +297,11 @@ function updateScreenFOV(fov)
 		// fovS is already vertical FOV
 		verticalFOV = fovS;
 	}
-	cameraOutside.fov = verticalFOV;	// convert to vertical FOV
-	cameraInside.fov = verticalFOV; 	// convert to vertiacl FOV
+	cameraOutside.fov = verticalFOV;
+	cameraInside.fov = verticalFOV;
 	cameraOutside.updateProjectionMatrix();
 	cameraInside.updateProjectionMatrix();
-	// console.log(`window aspect ratio ${windowAspectRatio}, (horizontal) fovS ${fovS}, camera (vertical) fov ${verticalFOV}`)
+	alert(`window aspect ratio ${windowAspectRatio}, fovS ${fovS}, camera (vertical) fov ${verticalFOV}`);
 }
 
 function onWindowResize() {
