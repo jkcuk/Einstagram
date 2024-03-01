@@ -288,9 +288,14 @@ function createGUI() {
 function updateScreenFOV(fov)
 {
 	fovS = fov;	// horizontal or vertical FOV, whichever is greater
+
 	let windowAspectRatio = window.innerWidth / window.innerHeight;
+	cameraInside.aspect = windowAspectRatio;
+	cameraOutside.aspect = windowAspectRatio;
+
+	// re-calculate the camera FOV, in case the orientation has changed
 	let verticalFOV;
-	if(windowAspectRatio > 1) {
+	if(windowAspectRatio > 1.0) {
 		// fovS is horizontal FOV; convert to get correct vertical FOV
 		verticalFOV = 2.0*Math.atan(Math.tan(0.5*fovS*Math.PI/180.0)/windowAspectRatio)*180.0/Math.PI;
 	} else {
@@ -307,7 +312,7 @@ function updateScreenFOV(fov)
 function onWindowResize() {
 	cameraInside.aspect = window.innerWidth / window.innerHeight;
 	cameraOutside.aspect = window.innerWidth / window.innerHeight;
-	updateScreenFOV(fovS);
+	// updateScreenFOV(fovS);
 
 	renderer.setSize(window.innerWidth, window.innerHeight);
 }
