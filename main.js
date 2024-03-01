@@ -11,7 +11,7 @@ let controls, shaderMaterial, geometry, lookalikeSphere, transformationMatrix;
 
 let fovU = 67;
 let fovE = 90;
-let fovS = 50;
+let fovS = 90;
 
 let betaX = 0.0, betaY = 0.0, betaZ = 0.0;
 
@@ -23,9 +23,11 @@ animate();
 function init() {
 
 	scene = new THREE.Scene();
-	cameraInside = new THREE.PerspectiveCamera( fovS, window.innerWidth / window.innerHeight, 0.0001, 3 );
-	cameraOutside = new THREE.PerspectiveCamera( fovS, window.innerWidth / window.innerHeight, 0.0001, 10 );
+	let windowAspectRatio = window.innerWidth / window.innerHeight;
+	cameraInside = new THREE.PerspectiveCamera( 10, windowAspectRatio, 0.0001, 3 );
+	cameraOutside = new THREE.PerspectiveCamera( 10, windowAspectRatio, 0.0001, 10 );
 	cameraOutside.position.z = cameraOutsideDistance;
+	updateScreenFOV(fovS);
 	
 	renderer = new THREE.WebGLRenderer();
 	renderer.setPixelRatio(window.devicePixelRatio);
@@ -285,11 +287,14 @@ function createGUI() {
 
 function updateScreenFOV(fov)
 {
-	fovS = fov;
-	cameraOutside.fov = fovS;
-	cameraInside.fov = fovS; 
+	fovS = fov;	// *horizontal* FOV
+	let windowAspectRatio = window.innerWidth / window.innerHeight;
+	let verticalFOV = 2.0*Math.atan(Math.tan(0.5*fovS*Math.PI/180.0)/windowAspectRatio)*180.0/Math.PI;
+	cameraOutside.fov = verticalFOV;	// convert to vertical FOV
+	cameraInside.fov = verticalFOV; 	// convert to vertiacl FOV
 	cameraOutside.updateProjectionMatrix();
 	cameraInside.updateProjectionMatrix();
+	// console.log(`window aspect ratio ${windowAspectRatio}, (horizontal) fovS ${fovS}, camera (vertical) fov ${verticalFOV}`)
 }
 
 function onWindowResize() {
