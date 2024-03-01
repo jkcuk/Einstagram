@@ -321,16 +321,7 @@ function screenChanged() {
 }
 
 function onWindowResize() {
-<<<<<<< HEAD
 	screenChanged();
-=======
-	// cameraInside.aspect = window.innerWidth / window.innerHeight;
-	// cameraOutside.aspect = window.innerWidth / window.innerHeight;
-	// setScreenFOV(fovS);
-  screenChanged();
-
-	// renderer.setSize(window.innerWidth, window.innerHeight);
->>>>>>> 6c6825f9b8ea6821f3603c2beaaafac9869540dc
 }
 
 function changeCamera(newCamera) {
