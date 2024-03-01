@@ -288,7 +288,8 @@ function createGUI() {
 }
 
 /**
- * @param {*} fov, in degrees
+ * @param {*} fov	The larger of the camera's horizontal and vertical FOV, in degrees
+ * 
  * Set the larger FOV of the screen/window to fov.
  * 
  * Depending on the screen/window's FOV, fov is either the horizontal fov (if screen width > screen height)
