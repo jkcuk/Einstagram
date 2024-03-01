@@ -285,12 +285,25 @@ function createGUI() {
 	*/
 }
 
+/**
+ * @param {*} fov, in degrees
+ * Set the larger FOV of the screen/window to fov.
+ * 
+ * Depending on the screen/window's FOV, fov is either the horizontal fov (if screen width > screen height)
+ * or the vertical fov (if screen width < screen height).
+ */
 function setScreenFOV(fov) {
 	fovS = fov;
 
 	screenChanged();
 }
 
+/** 
+ * Reset the aspect ratio and FOV of the virtual cameras.
+ * 
+ * Call if the window size has changed (which also happens when the screen orientation changes)
+ * or if camera's FOV has changed
+ */
 function screenChanged() {
 	// in case the screen size has changed
 	if(renderer) renderer.setSize(window.innerWidth, window.innerHeight);
@@ -337,7 +350,7 @@ function updateUniforms() {
 		shaderMaterial.uniforms.tanHalfFovVU.value = Math.tan(0.5*fovU*Math.PI/180.0)/aspectRatioU;
 	} else {
 		// vertical orientation
-		shaderMaterial.uniforms.tanHalfFovHU.value = Math.tan(0.5*fovU*Math.PI/180.0)*aspectRatio;
+		shaderMaterial.uniforms.tanHalfFovHU.value = Math.tan(0.5*fovU*Math.PI/180.0)*aspectRatioU;
 		shaderMaterial.uniforms.tanHalfFovVU.value = Math.tan(0.5*fovU*Math.PI/180.0);
 	}
 
