@@ -89,13 +89,6 @@ function createVideoFeeds() {
 				aspectRatioU = videoU.videoWidth / videoU.videoHeight;
 				updateUniforms();
 			  });
-
-			  videoU.addEventListener("resize", () => {
-				console.log(`RESIZE! video stream playing, size ${videoU.videoWidth} x ${videoU.videoHeight}`);
-				aspectRatioU = videoU.videoWidth / videoU.videoHeight;
-				updateUniforms();
-			  });
-
 		} ).catch( function ( error ) {
 			console.error( 'Unable to access the camera/webcam.', error );
 		} );
@@ -381,6 +374,13 @@ function updateTransformationMatrix() {
 	
 // // see https://developer.mozilla.org/en-US/docs/Web/API/ScreenOrientation/change_event
 function onScreenOrientationChange() {
+	// stop current video streams...
+	videoU.srcObject.getTracks().forEach(function(track) { track.stop(); });
+	videoE.srcObject.getTracks().forEach(function(track) { track.stop(); });
+
+	// ... and re-create new ones, hopefully of the appropriate size
+	createVideoFeeds();
+
 	// screen.orientation.addEventListener("change", (event) => {
 	// 	const type = event.target.type;
 	// 	const angle = event.target.angle;
