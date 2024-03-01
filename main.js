@@ -27,7 +27,7 @@ function init() {
 	cameraInside = new THREE.PerspectiveCamera( 10, windowAspectRatio, 0.0001, 3 );
 	cameraOutside = new THREE.PerspectiveCamera( 10, windowAspectRatio, 0.0001, 10 );
 	cameraOutside.position.z = cameraOutsideDistance;
-	updateScreenFOV(fovS);
+	setScreenFOV(fovS);
 	
 	renderer = new THREE.WebGLRenderer();
 	renderer.setPixelRatio(window.devicePixelRatio);
@@ -275,7 +275,7 @@ function createGUI() {
 	const folderFOV = gui.addFolder( 'FOV' );
 	folderFOV.add( params, 'user-facing camera', 10, 170, 1).onChange( (fov) => { fovU = fov; updateUniforms(); });   
 	folderFOV.add( params, 'env.-facing camera', 10, 170, 1).onChange( (fov) => { fovE = fov; updateUniforms(); });   
-	folderFOV.add( params, 'screen', 10, 170, 1).onChange( updateScreenFOV );   
+	folderFOV.add( params, 'screen', 10, 170, 1).onChange( setScreenFOV );   
 	folderFOV.open();
 
 	/*
@@ -285,9 +285,14 @@ function createGUI() {
 	*/
 }
 
-function updateScreenFOV(fov)
-{
-	fovS = fov;	// horizontal or vertical FOV, whichever is greater
+function setScreenFOV(fov) {
+	fovS = fov;
+
+	screenChanged();
+}
+
+function screenChanged() {
+	// fovS = fov;	// horizontal or vertical FOV, whichever is greater
 
 	let windowAspectRatio = window.innerWidth / window.innerHeight;
 	cameraInside.aspect = windowAspectRatio;
@@ -310,9 +315,9 @@ function updateScreenFOV(fov)
 }
 
 function onWindowResize() {
-	cameraInside.aspect = window.innerWidth / window.innerHeight;
-	cameraOutside.aspect = window.innerWidth / window.innerHeight;
-	// updateScreenFOV(fovS);
+	// cameraInside.aspect = window.innerWidth / window.innerHeight;
+	// cameraOutside.aspect = window.innerWidth / window.innerHeight;
+	updateScreenFOV(fovS);
 
 	renderer.setSize(window.innerWidth, window.innerHeight);
 }
