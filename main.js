@@ -306,10 +306,8 @@ function updateScreenFOV(fov)
 
 function onWindowResize() {
 	cameraInside.aspect = window.innerWidth / window.innerHeight;
-	cameraInside.updateProjectionMatrix();
-
 	cameraOutside.aspect = window.innerWidth / window.innerHeight;
-	cameraOutside.updateProjectionMatrix();
+	updateScreenFOV(fovS);
 
 	renderer.setSize(window.innerWidth, window.innerHeight);
 }
