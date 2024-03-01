@@ -294,6 +294,8 @@ function setScreenFOV(fov) {
 function screenChanged() {
 	// fovS = fov;	// horizontal or vertical FOV, whichever is greater
 
+renderer.setSize(window.innerWidth, window.innerHeight);
+
 	let windowAspectRatio = window.innerWidth / window.innerHeight;
 	cameraInside.aspect = windowAspectRatio;
 	cameraOutside.aspect = windowAspectRatio;
@@ -317,9 +319,10 @@ function screenChanged() {
 function onWindowResize() {
 	// cameraInside.aspect = window.innerWidth / window.innerHeight;
 	// cameraOutside.aspect = window.innerWidth / window.innerHeight;
-	setScreenFOV(fovS);
+	// setScreenFOV(fovS);
+  screenChanged();
 
-	renderer.setSize(window.innerWidth, window.innerHeight);
+	// renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
 function changeCameraPosition(newCameraPosition) {
