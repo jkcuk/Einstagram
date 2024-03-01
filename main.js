@@ -26,44 +26,102 @@ function init() {
 	cameraInside = new THREE.PerspectiveCamera( fovS, window.innerWidth / window.innerHeight, 0.0001, 3 );
 	cameraOutside = new THREE.PerspectiveCamera( fovS, window.innerWidth / window.innerHeight, 0.0001, 10 );
 	cameraOutside.position.z = cameraOutsideDistance;
-
+	
 	renderer = new THREE.WebGLRenderer();
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	document.body.appendChild( renderer.domElement );
 
+	createVideoFeeds();
+
+	createLookalikeSphere();
+
+	// user interface
+
+	// handle window resize and screen-orientation change
 	window.addEventListener("resize", onWindowResize, false);
+	screen.orientation.addEventListener("change", onScreenOrientationChange);
 
-	// // see https://developer.mozilla.org/en-US/docs/Web/API/ScreenOrientation/change_event
-	// screen.orientation.addEventListener("change", (event) => {
-	// 	const type = event.target.type;
-	// 	const angle = event.target.angle;
-	// 	alert(`ScreenOrientation change: ${type}, ${angle} degrees.  New window size ${window.innerWidth} x ${window.innerHeight}.`);
-
-	// 	// see https://developer.mozilla.org/en-US/docs/Web/API/Screen/orientation
-	// 	// switch (screen.orientation.type) {
-	// 	// 	case "landscape-primary":
-	// 	// 		console.log("That looks good.");
-	// 	// 		break;
-	// 	// 	case "landscape-secondary":
-	// 	// 		console.log("Mmmh… the screen is upside down!");
-	// 	// 		break;
-	// 	// 	case "portrait-secondary":
-	// 	// 	case "portrait-primary":
-	// 	// 		console.log("Mmmh… you should rotate your device to landscape");
-	// 	// 		break;
-	// 	// 	default:
-	// 	// 		console.log("The orientation API isn't supported in this browser :(");
-	// 	// 	}
-			
-	// });
-
-
+	// add orbit controls to outside camera
 	addOrbitControls();	// add to outside camera
 
+	createGUI();
+}
+
+function setWarning(warning) {
+	shaderMaterial.uniforms.warning.value = warning;
+}
+
+function animate() {
+	// console.log(camera.position);
+	requestAnimationFrame( animate );
+
+	// calculate the matrix that describes the correct distortion of the lookalike sphere
+	updateTransformationMatrix();
+	
+	// set the camera, either to the inside camera or the outside camera
+	switch(cameraPosition)
+	{
+		case 'Outside lookalike sphere':
+			renderer.render( scene, cameraOutside );
+			break;
+		case 'Inside lookalike sphere':
+		default:
+			renderer.render( scene, cameraInside );
+	}
+}
+
+function createVideoFeeds() {
 	videoU = document.getElementById( 'videoU' );
 	videoE = document.getElementById( 'videoE' );
 
+	// see https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_video_webcam.html
+	if ( navigator.mediaDevices && navigator.mediaDevices.getUserMedia ) {
+		// user-facing camera
+		const constraintsU = { video: { width: {ideal: 4096}, height: {ideal: 4096}, facingMode: 'user' } };
+		navigator.mediaDevices.getUserMedia( constraintsU ).then( function ( stream ) {
+			// apply the stream to the video element used in the texture
+			videoU.srcObject = stream;
+			videoU.play();
+
+			videoU.addEventListener("playing", () => {
+				console.log(`video stream playing, size ${videoU.videoWidth} x ${videoU.videoHeight}`);
+				aspectRatioU = videoU.videoWidth / videoU.videoHeight;
+				updateUniforms();
+			  });
+
+			  videoU.addEventListener("resize", () => {
+				console.log(`RESIZE! video stream playing, size ${videoU.videoWidth} x ${videoU.videoHeight}`);
+				aspectRatioU = videoU.videoWidth / videoU.videoHeight;
+				updateUniforms();
+			  });
+
+		} ).catch( function ( error ) {
+			console.error( 'Unable to access the camera/webcam.', error );
+		} );
+
+		// environment-facing camera
+		const constraintsE = { video: {width: {ideal: 4096}, height: {ideal: 4096}, facingMode: 'environment' } };
+		navigator.mediaDevices.getUserMedia( constraintsE ).then( function ( stream ) {
+			// apply the stream to the video element used in the texture
+			videoE.srcObject = stream;
+			videoE.play();
+
+			videoE.addEventListener("playing", () => {
+				console.log(`video stream playing, size ${videoE.videoWidth} x ${videoE.videoHeight}`);
+				aspectRatioE = videoE.videoWidth / videoE.videoHeight;
+				updateUniforms();
+			  });
+		} ).catch( function ( error ) {
+			console.error( 'Unable to access the camera/webcam.', error );
+		} );
+	} else {
+		console.error( 'MediaDevices interface not available.' );
+	}
+}
+
+/** create lookalike sphere, textures, transformation matrix */
+function createLookalikeSphere() {
 	const textureU = new THREE.VideoTexture( videoU );
 	textureU.colorSpace = THREE.SRGBColorSpace;
 
@@ -140,76 +198,9 @@ function init() {
 	lookalikeSphere.matrixAutoUpdate = false;	// we will update the matrix ourselves
 	scene.add( lookalikeSphere );
 
+	// also create the lookalike sphere's transformation matrix
 	transformationMatrix = new THREE.Matrix4();
 	transformationMatrix.identity();
-
-	createGUI();
-
-	createVideoFeeds();
-}
-
-function setWarning(warning) {
-	shaderMaterial.uniforms.warning.value = warning;
-}
-
-function animate() {
-	// console.log(camera.position);
-	requestAnimationFrame( animate );
-
-	// cube.rotation.x += 0.01;
-	// cube.rotation.y += 0.01;
-
-
-	updateTransformationMatrix();
-	
-	switch(cameraPosition)
-	{
-		case 'Outside lookalike sphere':
-			renderer.render( scene, cameraOutside );
-			break;
-		case 'Inside lookalike sphere':
-		default:
-			renderer.render( scene, cameraInside );
-	}
-}
-
-function createVideoFeeds() {
-	// see https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_video_webcam.html
-	if ( navigator.mediaDevices && navigator.mediaDevices.getUserMedia ) {
-		// user-facing camera
-		const constraintsU = { video: { width: {ideal: 4096}, height: {ideal: 4096}, facingMode: 'user' } };
-		navigator.mediaDevices.getUserMedia( constraintsU ).then( function ( stream ) {
-			// apply the stream to the video element used in the texture
-			videoU.srcObject = stream;
-			videoU.play();
-
-			videoU.addEventListener("playing", () => {
-				aspectRatioU = videoU.videoWidth / videoU.videoHeight;
-				console.log(`aspectRatioU = ${aspectRatioU}, ${videoU.videoWidth} x ${videoU.videoHeight}`);
-				updateUniforms();
-			  });
-		} ).catch( function ( error ) {
-			console.error( 'Unable to access the camera/webcam.', error );
-		} );
-
-		// environment-facing camera
-		const constraintsE = { video: {width: {ideal: 4096}, height: {ideal: 4096}, facingMode: 'environment' } };
-		navigator.mediaDevices.getUserMedia( constraintsE ).then( function ( stream ) {
-			// apply the stream to the video element used in the texture
-			videoE.srcObject = stream;
-			videoE.play();
-
-			videoE.addEventListener("playing", () => {
-				aspectRatioE = videoE.videoWidth / videoE.videoHeight;
-				console.log(`aspectRatioE = ${aspectRatioE}, ${videoE.videoWidth} x ${videoE.videoHeight}`);
-				updateUniforms();
-			  });
-		} ).catch( function ( error ) {
-			console.error( 'Unable to access the camera/webcam.', error );
-		} );
-	} else {
-		console.error( 'MediaDevices interface not available.' );
-	}
 }
 
 function addOrbitControls() {
@@ -242,7 +233,7 @@ function createGUI() {
     	'Camera position': cameraPosition,
 		'Transformation': transformation
 	}
-	gui.add(text, 'Camera position', { 'Inside lookalike sphere': 'Inside lookalike sphere', 'Outside lookalike sphere': 'Outside lookalike sphere' } ).onChange( (s) => { cameraPosition = s; console.log(s); });
+	gui.add(text, 'Camera position', { 'Inside lookalike sphere': 'Inside lookalike sphere', 'Outside lookalike sphere': 'Outside lookalike sphere' } ).onChange( changeCameraPosition );
 	gui.add(text, 'Transformation', { 'Lorentz': 'Lorentz', 'Galileo': 'Galileo' } ).onChange( (s) => { transformation = s; console.log(s); });
 
 	const params = {
@@ -306,6 +297,12 @@ function onWindowResize() {
 	cameraOutside.updateProjectionMatrix();
 
 	renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function changeCameraPosition(newCameraPosition) {
+	cameraPosition = newCameraPosition;
+	
+	controls.enabled = (cameraPosition == 'Outside lookalike sphere');
 }
 
 function updateUniforms() {
@@ -381,7 +378,33 @@ function updateTransformationMatrix() {
 		updateUniforms();
 	}
 }
+	
+// // see https://developer.mozilla.org/en-US/docs/Web/API/ScreenOrientation/change_event
+function onScreenOrientationChange() {
+	// screen.orientation.addEventListener("change", (event) => {
+	// 	const type = event.target.type;
+	// 	const angle = event.target.angle;
+	// 	alert(`ScreenOrientation change: ${type}, ${angle} degrees.  New window size ${window.innerWidth} x ${window.innerHeight}.`);
 
+	// 	// see https://developer.mozilla.org/en-US/docs/Web/API/Screen/orientation
+	// 	// switch (screen.orientation.type) {
+	// 	// 	case "landscape-primary":
+	// 	// 		console.log("That looks good.");
+	// 	// 		break;
+	// 	// 	case "landscape-secondary":
+	// 	// 		console.log("Mmmh… the screen is upside down!");
+	// 	// 		break;
+	// 	// 	case "portrait-secondary":
+	// 	// 	case "portrait-primary":
+	// 	// 		console.log("Mmmh… you should rotate your device to landscape");
+	// 	// 		break;
+	// 	// 	default:
+	// 	// 		console.log("The orientation API isn't supported in this browser :(");
+	// 	// 	}
+			
+	// });
+}
+	
 /*
 function pointForward() {
 	controls.dispose();
