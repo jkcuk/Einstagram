@@ -37,8 +37,7 @@ function init() {
 	// create the info element first so that any problems can be communicated
 	createInfo();
 
-	screen.orientation.lock("landscape")
-	.catch( function(error) {setInfo("Can't lock orientation");} );
+	// screen.orientation.lock("landscape").catch( function(error) {setInfo("Can't lock orientation");} );
 
 	// // list all the media devices (so that, maybe, later we can select cameras from this list)
 	// if (!navigator.mediaDevices?.enumerateDevices) {
@@ -140,8 +139,6 @@ function createVideoFeeds() {
 	videoU = document.getElementById( 'videoU' );
 	videoE = document.getElementById( 'videoE' );
 
-	let infoText = "cam";
-
 	// see https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_video_webcam.html
 	if ( navigator.mediaDevices && navigator.mediaDevices.getUserMedia ) {
 		// user-facing camera
@@ -161,12 +158,10 @@ function createVideoFeeds() {
 				// console.log(`Video stream playing, size ${videoU.videoWidth} x ${videoU.videoHeight}`);
 				aspectRatioU = videoU.videoWidth / videoU.videoHeight;
 				updateUniforms();
-				setInfo(`User-facing camera ${videoU.videoWidth} &times; ${videoU.videoHeight}`);
+				setInfo(`User-facing camera ${videoU.srcObject.label} ${videoU.videoWidth} &times; ${videoU.videoHeight}`);
 			});
 		} ).catch( function ( error ) {
-			infoText += "b";
-			infoText = `Unable to access camera/webcam (Error: ${error})`;
-			// setInfo( 'Unable to access camera/webcam.', error );
+			setInfo(`Unable to access camera/webcam (Error: ${error})`);
 		} );
 
 		// environment-facing camera
@@ -192,7 +187,6 @@ function createVideoFeeds() {
 	} else {
 		setInfo( 'MediaDevices interface, which is required for video streams from device cameras, not available.' );
 	}
-	setInfo(infoText);
 }
 
 /** create lookalike sphere, textures, transformation matrix */
