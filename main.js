@@ -21,6 +21,15 @@ let info = document.createElement('div');
 
 // const container = document.getElementById( 'container' );
 
+// see https://stackoverflow.com/questions/40130969/how-can-i-page-zoom-on-mobile-browser
+function zoom(scale) {
+    document.body.style.transform = "scale(" + scale + ")";
+    document.body.style.transformOrigin = "top left";
+    document.body.style.width = (100 / scale) + "%";
+    document.body.style.height = (100 / scale) + "%";
+};
+zoom(1.0);
+
 init();
 animate();
 
@@ -85,6 +94,8 @@ function createInfo() {
 	info.style.position = 'absolute';
 	info.style.backgroundColor = "rgba(0, 0, 0, 0.5)";	// semi-transparent white
 	info.style.color = "White";
+	info.style.fontFamily = "Arial";
+	info.style.fontSize = "9pt";
 	removeInfo();
 	info.style.bottom = 0 + 'px';
 	info.style.left = 0 + 'px';
@@ -147,7 +158,7 @@ function createVideoFeeds() {
 				updateUniforms();
 			  });
 		} ).catch( function ( error ) {
-			alert( 'Unable to access camera/webcam.', error );
+			setInfo( 'Unable to access camera/webcam.', error );
 		} );
 
 		// environment-facing camera
@@ -168,10 +179,10 @@ function createVideoFeeds() {
 				updateUniforms();
 			  });
 		} ).catch( function ( error ) {
-			alert( 'Unable to access camera/webcam.', error );
+			setInfo( 'Unable to access camera/webcam.', error );
 		} );
 	} else {
-		alert( 'MediaDevices interface, which is required for video streams from device cameras, not available.' );
+		setInfo( 'MediaDevices interface, which is required for video streams from device cameras, not available.' );
 	}
 }
 
@@ -390,7 +401,7 @@ function screenChanged() {
 
 function onWindowResize() {
 	screenChanged();
-	setInfo(`new window size ${window.innerWidth} &times; ${window.innerHeight}`);	// debug
+	setInfo(`window size ${window.innerWidth} &times; ${window.innerHeight}`);	// debug
 }
 
 function changeCamera(newCamera) {
