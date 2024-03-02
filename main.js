@@ -286,7 +286,8 @@ function addOrbitControls() {
 	controls.enableDamping = false; // an animation loop is required when either damping or auto-rotation are enabled
 	controls.dampingFactor = 0.05;
 
-	controls.screenSpacePanning = false;
+	controls.enablePan = false;
+	controls.enableZoom = false;
 
 	// allowing control of the distance can result in the view being no longer 
 	// centred on the origin, so don't allow it
