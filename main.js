@@ -17,6 +17,10 @@ let betaX = 0.0, betaY = 0.0, betaZ = 0.0;
 
 let cameraOutsideDistance = 4.0;
 
+let info = document.createElement('div');
+
+// const container = document.getElementById( 'container' );
+
 init();
 animate();
 
@@ -56,6 +60,7 @@ function init() {
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	document.body.appendChild( renderer.domElement );
+	// container.appendChild( renderer.domElement );
 
 	createVideoFeeds();
 
@@ -71,6 +76,27 @@ function init() {
 	addOrbitControls();	// add to outside camera
 
 	createGUI();
+
+	createInfo();
+}
+
+function createInfo() {
+	// see https://stackoverflow.com/questions/15248872/dynamically-create-2d-text-in-three-js
+	info.style.position = 'absolute';
+	info.style.backgroundColor = "rgba(0, 0, 0, 0.5)";	// semi-transparent white
+	info.style.color = "White";
+	removeInfo();
+	info.style.bottom = 0 + 'px';
+	info.style.left = 0 + 'px';
+	document.body.appendChild(info);	
+}
+
+function setInfo(text) {
+	info.innerHTML = text;
+}
+
+function removeInfo() {
+	setInfo( "Relativistic Distortionist, University of Glasgow" );
 }
 
 function setWarning(warning) {
@@ -332,7 +358,7 @@ function setScreenFOV(fov) {
  * or if camera's FOV has changed
  */
 function screenChanged() {
-	alert(`new window size ${window.innerWidth} x ${window.innerHeight}`);
+	// alert(`new window size ${window.innerWidth} x ${window.innerHeight}`);
 
 	// in case the screen size has changed
 	if(renderer) renderer.setSize(window.innerWidth, window.innerHeight);
@@ -364,6 +390,7 @@ function screenChanged() {
 
 function onWindowResize() {
 	screenChanged();
+	setInfo(`new window size ${window.innerWidth} &times; ${window.innerHeight}`);	// debug
 }
 
 function changeCamera(newCamera) {
@@ -424,7 +451,8 @@ function updateTransformationMatrix() {
 	    console.log(`Beta >= 1, scaling it to 0.99 (beta = (${betaX}, ${betaY}, ${betaZ}))`);
 		*/
 		setWarning(true);
-		console.log(`beta (=${Math.sqrt(beta2)}) > 1`);
+		setInfo(`Warning: &beta; (=${Math.sqrt(beta2)}) > 1; using previous value`);
+		console.log(`Warning: beta (=${Math.sqrt(beta2)}) > 1; using previous value`);
   	} else {
     	beta = Math.sqrt(beta2);
 		gamma = 1/Math.sqrt(1-beta2);
@@ -456,6 +484,7 @@ function updateTransformationMatrix() {
 		// set the lookalike sphere's transformation matrix to the matrix we just calculated
 		lookalikeSphere.matrix.copy(transformationMatrix);
 
+		if(shaderMaterial.uniforms.warning.value) removeInfo();
 		setWarning(false);
 		updateUniforms();
 	}
