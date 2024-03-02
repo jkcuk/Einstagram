@@ -9,8 +9,8 @@ let renderer, videoU, videoE;
 let cameraInside, cameraOutside;
 let controls, shaderMaterial, geometry, lookalikeSphere, transformationMatrix;
 
-let fovU = 67;
-let fovE = 90;
+let fovU = 66;
+let fovE = 66;
 let fovS = 90;
 
 let betaX = 0.0, betaY = 0.0, betaZ = 0.0;
@@ -275,7 +275,7 @@ function createGUI() {
 				  );
 				});
 				// allow screen orientation changes
-				screen.orientation.unlock();
+				// screen.orientation.unlock();
 			} else {
 				document.exitFullscreen();
 			}
@@ -332,6 +332,8 @@ function setScreenFOV(fov) {
  * or if camera's FOV has changed
  */
 function screenChanged() {
+	alert(`new window size ${window.innerWidth} x ${window.innerHeight}`);
+
 	// in case the screen size has changed
 	if(renderer) renderer.setSize(window.innerWidth, window.innerHeight);
 
