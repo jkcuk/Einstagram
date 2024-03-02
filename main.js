@@ -37,6 +37,9 @@ function init() {
 	// create the info element first so that any problems can be communicated
 	createInfo();
 
+	screen.orientation.lock("landscape")
+	.catch( function(error) {setInfo("Can't lock orientation");} );
+
 	// // list all the media devices (so that, maybe, later we can select cameras from this list)
 	// if (!navigator.mediaDevices?.enumerateDevices) {
 	// 	console.log("enumerateDevices() not supported.");
