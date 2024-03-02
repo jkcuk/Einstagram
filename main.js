@@ -21,19 +21,21 @@ let info = document.createElement('div');
 
 // const container = document.getElementById( 'container' );
 
-// see https://stackoverflow.com/questions/40130969/how-can-i-page-zoom-on-mobile-browser
-function zoom(scale) {
-    document.body.style.transform = "scale(" + scale + ")";
-    document.body.style.transformOrigin = "top left";
-    document.body.style.width = (100 / scale) + "%";
-    document.body.style.height = (100 / scale) + "%";
-};
-zoom(1.0);
+// // see https://stackoverflow.com/questions/40130969/how-can-i-page-zoom-on-mobile-browser
+// function zoom(scale) {
+//     document.body.style.transform = "scale(" + scale + ")";
+//     document.body.style.transformOrigin = "top left";
+//     document.body.style.width = (100 / scale) + "%";
+//     document.body.style.height = (100 / scale) + "%";
+// };
+// zoom(1.0);
 
 init();
 animate();
 
 function init() {
+	// create the info element first so that any problems can be communicated
+	createInfo();
 
 	// // list all the media devices (so that, maybe, later we can select cameras from this list)
 	// if (!navigator.mediaDevices?.enumerateDevices) {
@@ -85,8 +87,6 @@ function init() {
 	addOrbitControls();	// add to outside camera
 
 	createGUI();
-
-	createInfo();
 }
 
 function createInfo() {
@@ -137,13 +137,15 @@ function createVideoFeeds() {
 	videoU = document.getElementById( 'videoU' );
 	videoE = document.getElementById( 'videoE' );
 
+	let infoText = "cam";
+
 	// see https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_video_webcam.html
 	if ( navigator.mediaDevices && navigator.mediaDevices.getUserMedia ) {
 		// user-facing camera
 		const constraintsU = { video: { 
 			// 'deviceId': cameraId,	// this could be the device ID selected 
-			width: {ideal: 10000}, 
-			height: {ideal: 10000}, 
+			width: {ideal: 1280},	// {ideal: 10000}, 
+			// height: {ideal: 10000}, 
 			facingMode: {ideal: 'user'},
 			// aspectRatio: { exact: width / height }
 		} };
@@ -156,15 +158,18 @@ function createVideoFeeds() {
 				// console.log(`Video stream playing, size ${videoU.videoWidth} x ${videoU.videoHeight}`);
 				aspectRatioU = videoU.videoWidth / videoU.videoHeight;
 				updateUniforms();
-			  });
+				setInfo(`User-facing camera ${videoU.videoWidth} &times; ${videoU.videoHeight}`);
+			});
 		} ).catch( function ( error ) {
-			setInfo( 'Unable to access camera/webcam.', error );
+			infoText += "b";
+			infoText = `Unable to access camera/webcam (Error: ${error})`;
+			// setInfo( 'Unable to access camera/webcam.', error );
 		} );
 
 		// environment-facing camera
 		const constraintsE = { video: {
-			width: {ideal: 10000}, 
-			height: {ideal: 10000}, 
+			width: {ideal: 1280},	// {ideal: 10000}, 
+			// height: {ideal: 10000}, 
 			facingMode: {ideal: 'environment'},
 			// aspectRatio: { exact: width / height }
 		} };
@@ -184,6 +189,7 @@ function createVideoFeeds() {
 	} else {
 		setInfo( 'MediaDevices interface, which is required for video streams from device cameras, not available.' );
 	}
+	setInfo(infoText);
 }
 
 /** create lookalike sphere, textures, transformation matrix */
