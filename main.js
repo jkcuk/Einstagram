@@ -172,7 +172,7 @@ function createVideoFeeds() {
 				// console.log(`Video stream playing, size ${videoU.videoWidth} x ${videoU.videoHeight}`);
 				aspectRatioU = videoU.videoWidth / videoU.videoHeight;
 				updateUniforms();
-				setInfo(`User-facing camera ${videoU.videoWidth} &times; ${videoU.videoHeight}`);
+				// setInfo(`User-facing camera ${videoU.videoWidth} &times; ${videoU.videoHeight}`);
 			});
 		} ).catch( function ( error ) {
 			setInfo(`Unable to access camera/webcam (Error: ${error})`);
