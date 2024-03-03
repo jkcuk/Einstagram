@@ -18,6 +18,8 @@ let betaX = 0.0, betaY = 0.0, betaZ = 0.0;
 let cameraOutsideDistance = 4.0;
 
 let info = document.createElement('div');
+// let infotext = null;	// the text of the last info; null if no info
+let infotime;	// the time the last info was posted
 
 // const container = document.getElementById( 'container' );
 
@@ -39,28 +41,28 @@ function init() {
 
 	// screen.orientation.lock("landscape").catch( function(error) {setInfo("Can't lock orientation");} );
 
-	// // list all the media devices (so that, maybe, later we can select cameras from this list)
-	// if (!navigator.mediaDevices?.enumerateDevices) {
-	// 	console.log("enumerateDevices() not supported.");
-	// } else {
-	// 	// List cameras and microphones.
-	// 	navigator.mediaDevices
-	// 	  .enumerateDevices()
-	// 	  .then((devices) => {
-	// 		devices.forEach((device) => {
-	// 		  console.log(`${device.kind}: ${device.label} id = ${device.deviceId}`);
-	// 		  console.log(device.getCapabilities());
-	// 		//   console.log(device.getCapabilities().aspectRatio);
-	// 		//   console.log(device.getCapabilities().facingMode);
-	// 		//   console.log(device.getCapabilities().width);
-	// 		//   console.log(device.getCapabilities().height);
-	// 		//   console.log(device.getCapabilities().resizeMode);
-	// 		});
-	// 	  })
-	// 	  .catch((err) => {
-	// 		console.error(`${err.name}: ${err.message}`);
-	// 	  });
-	// }
+	// list all the media devices (so that, maybe, later we can select cameras from this list)
+	if (!navigator.mediaDevices?.enumerateDevices) {
+		console.log("enumerateDevices() not supported.");
+	} else {
+		// List cameras and microphones.
+		navigator.mediaDevices
+		  .enumerateDevices()
+		  .then((devices) => {
+			devices.forEach((device) => {
+			  console.log(`${device.kind}: ${device.label}, id = ${device.deviceId}`);
+			  console.log(device.getCapabilities());
+			//   console.log(device.getCapabilities().aspectRatio);
+			//   console.log(device.getCapabilities().facingMode);
+			//   console.log(device.getCapabilities().width);
+			//   console.log(device.getCapabilities().height);
+			//   console.log(device.getCapabilities().resizeMode);
+			});
+		  })
+		  .catch((err) => {
+			console.error(`${err.name}: ${err.message}`);
+		  });
+	}
 
 	scene = new THREE.Scene();
 	let windowAspectRatio = window.innerWidth / window.innerHeight;
@@ -98,19 +100,28 @@ function createInfo() {
 	info.style.color = "White";
 	info.style.fontFamily = "Arial";
 	info.style.fontSize = "9pt";
-	removeInfo();
+	setInfo("Welcome!");
 	info.style.bottom = 0 + 'px';
 	info.style.left = 0 + 'px';
 	document.body.appendChild(info);	
 }
 
 function setInfo(text) {
-	info.innerHTML = text;
+	// infotext = text;
+	info.innerHTML = text;	// infotext;
+	infotime = new Date().getTime();
+	setTimeout( () => { if(new Date().getTime() - infotime > 2999) info.innerHTML = `Relativistic Distortionist, University of Glasgow` }, 3000);
 }
 
-function removeInfo() {
-	setInfo( "Relativistic Distortionist, University of Glasgow" );
+function showInfo() {
+	if(new Date().getTime() - infotime < 1000) info.innerHTML = infotext;
+	else info.innerHTML =  `Relativistic Distortionist, University of Glasgow`;
+	// else info.innerHTML =  `Relativistic Distortionist, University of Glasgow, ${transformation} transformation, &beta; = (${betaX}, ${betaY}, ${betaZ}), screen horiz. FOV = ${fovS}&deg;, ${camera}`;
 }
+
+// function removeInfo() {
+// 	info.innerHTML =  `Relativistic Distortionist, University of Glasgow, &beta; = (${betaX}, ${betaY}, ${betaZ}), screen horiz. FOV = ${fovS}&deg;`;
+// }
 
 function setWarning(warning) {
 	shaderMaterial.uniforms.warning.value = warning;
@@ -119,6 +130,9 @@ function setWarning(warning) {
 function animate() {
 	// console.log(camera.position);
 	requestAnimationFrame( animate );
+
+	// update the info
+	// showInfo();
 
 	// calculate the matrix that describes the correct distortion of the lookalike sphere
 	updateTransformationMatrix();
@@ -158,7 +172,7 @@ function createVideoFeeds() {
 				// console.log(`Video stream playing, size ${videoU.videoWidth} x ${videoU.videoHeight}`);
 				aspectRatioU = videoU.videoWidth / videoU.videoHeight;
 				updateUniforms();
-				setInfo(`User-facing camera ${videoU.srcObject.label} ${videoU.videoWidth} &times; ${videoU.videoHeight}`);
+				setInfo(`User-facing camera ${videoU.videoWidth} &times; ${videoU.videoHeight}`);
 			});
 		} ).catch( function ( error ) {
 			setInfo(`Unable to access camera/webcam (Error: ${error})`);
