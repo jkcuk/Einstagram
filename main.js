@@ -41,28 +41,28 @@ function init() {
 
 	// screen.orientation.lock("landscape").catch( function(error) {setInfo("Can't lock orientation");} );
 
-	// list all the media devices (so that, maybe, later we can select cameras from this list)
-	if (!navigator.mediaDevices?.enumerateDevices) {
-		console.log("enumerateDevices() not supported.");
-	} else {
-		// List cameras and microphones.
-		navigator.mediaDevices
-		  .enumerateDevices()
-		  .then((devices) => {
-			devices.forEach((device) => {
-			  console.log(`${device.kind}: ${device.label}, id = ${device.deviceId}`);
-			  console.log(device.getCapabilities());
-			//   console.log(device.getCapabilities().aspectRatio);
-			//   console.log(device.getCapabilities().facingMode);
-			//   console.log(device.getCapabilities().width);
-			//   console.log(device.getCapabilities().height);
-			//   console.log(device.getCapabilities().resizeMode);
-			});
-		  })
-		  .catch((err) => {
-			console.error(`${err.name}: ${err.message}`);
-		  });
-	}
+	// // list all the media devices (so that, maybe, later we can select cameras from this list)
+	// if (!navigator.mediaDevices?.enumerateDevices) {
+	// 	console.log("enumerateDevices() not supported.");
+	// } else {
+	// 	// List cameras and microphones.
+	// 	navigator.mediaDevices
+	// 	  .enumerateDevices()
+	// 	  .then((devices) => {
+	// 		devices.forEach((device) => {
+	// 		  console.log(`${device.kind}: ${device.label}, id = ${device.deviceId}`);
+	// 		  console.log(device.getCapabilities());
+	// 		//   console.log(device.getCapabilities().aspectRatio);
+	// 		//   console.log(device.getCapabilities().facingMode);
+	// 		//   console.log(device.getCapabilities().width);
+	// 		//   console.log(device.getCapabilities().height);
+	// 		//   console.log(device.getCapabilities().resizeMode);
+	// 		});
+	// 	  })
+	// 	  .catch((err) => {
+	// 		console.error(`${err.name}: ${err.message}`);
+	// 	  });
+	// }
 
 	scene = new THREE.Scene();
 	let windowAspectRatio = window.innerWidth / window.innerHeight;
@@ -513,7 +513,10 @@ function updateTransformationMatrix() {
 		// set the lookalike sphere's transformation matrix to the matrix we just calculated
 		lookalikeSphere.matrix.copy(transformationMatrix);
 
-		if(shaderMaterial.uniforms.warning.value) removeInfo();
+		if(shaderMaterial.uniforms.warning.value) {
+			setInfo(`&beta; (=${Math.sqrt(beta2)}) < 1; all good!`);
+			console.log(`&beta; (=${Math.sqrt(beta2)}) < 1; all good!`);
+		}
 		setWarning(false);
 		updateUniforms();
 	}
