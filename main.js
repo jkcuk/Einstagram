@@ -18,19 +18,7 @@ let betaX = 0.0, betaY = 0.0, betaZ = 0.0;
 let cameraOutsideDistance = 4.0;
 
 let info = document.createElement('div');
-// let infotext = null;	// the text of the last info; null if no info
 let infotime;	// the time the last info was posted
-
-// const container = document.getElementById( 'container' );
-
-// // see https://stackoverflow.com/questions/40130969/how-can-i-page-zoom-on-mobile-browser
-// function zoom(scale) {
-//     document.body.style.transform = "scale(" + scale + ")";
-//     document.body.style.transformOrigin = "top left";
-//     document.body.style.width = (100 / scale) + "%";
-//     document.body.style.height = (100 / scale) + "%";
-// };
-// zoom(1.0);
 
 init();
 animate();
@@ -38,8 +26,6 @@ animate();
 function init() {
 	// create the info element first so that any problems can be communicated
 	createInfo();
-
-	// screen.orientation.lock("landscape").catch( function(error) {setInfo("Can't lock orientation");} );
 
 	// // list all the media devices (so that, maybe, later we can select cameras from this list)
 	// if (!navigator.mediaDevices?.enumerateDevices) {
@@ -75,7 +61,6 @@ function init() {
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	document.body.appendChild( renderer.domElement );
-	// container.appendChild( renderer.domElement );
 
 	createVideoFeeds();
 
@@ -107,9 +92,10 @@ function createInfo() {
 }
 
 function setInfo(text) {
-	// infotext = text;
-	info.innerHTML = text;	// infotext;
+	info.innerHTML = text;
 	console.log(text);
+
+	// remove the info text after 3s
 	infotime = new Date().getTime();
 	setTimeout( () => { if(new Date().getTime() - infotime > 2999) info.innerHTML = `Relativistic Distortionist, University of Glasgow` }, 3000);
 }
@@ -120,10 +106,6 @@ function showInfo() {
 	// else info.innerHTML =  `Relativistic Distortionist, University of Glasgow, ${transformation} transformation, &beta; = (${betaX}, ${betaY}, ${betaZ}), screen horiz. FOV = ${fovS}&deg;, ${camera}`;
 }
 
-// function removeInfo() {
-// 	info.innerHTML =  `Relativistic Distortionist, University of Glasgow, &beta; = (${betaX}, ${betaY}, ${betaZ}), screen horiz. FOV = ${fovS}&deg;`;
-// }
-
 function setWarning(warning) {
 	shaderMaterial.uniforms.warning.value = warning;
 }
@@ -132,14 +114,8 @@ function animate() {
 	// console.log(camera.position);
 	requestAnimationFrame( animate );
 
-	// update the info
-	// showInfo();
-
 	// calculate the matrix that describes the correct distortion of the lookalike sphere
 	updateTransformationMatrix();
-
-	// update uniforms related to FOV etc.
-	// updateUniforms();
 	
 	// set the camera, either to the inside camera or the outside camera
 	switch(camera)
@@ -176,7 +152,6 @@ function createVideoFeeds() {
 				// console.log(`Video stream playing, size ${videoU.videoWidth} x ${videoU.videoHeight}`);
 				aspectRatioU = videoU.videoWidth / videoU.videoHeight;
 				updateUniforms();
-				// setInfo(`User-facing camera ${videoU.videoWidth} &times; ${videoU.videoHeight}`);
 			});
 		} ).catch( function ( error ) {
 			setInfo(`Unable to access camera/webcam (Error: ${error})`);
@@ -217,8 +192,6 @@ function createLookalikeSphere() {
 
 	// the lookalike sphere
 	geometry = new THREE.SphereGeometry( 1, 200, 200 );
-	// geometry.scale(betaX, betaY, betaZ);
-	// const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
 	shaderMaterial = new THREE.ShaderMaterial({
 		side: THREE.DoubleSide,
 		uniforms: { 
@@ -326,7 +299,6 @@ function createGUI() {
 
 	const params = {
 		'Toggle fullscreen': function() {
-			// alert(`Fullscreen: ${document.body.fullscreenElement}, ${document.fullscreenElement}`);
 			if (!document.fullscreenElement) {
 				document.documentElement.requestFullscreen().catch((err) => {
 				  alert(
@@ -334,12 +306,10 @@ function createGUI() {
 				  );
 				});
 				// allow screen orientation changes
-				// screen.orientation.unlock();
+				// screen.orientation.unlock();	// doesn't work, for some reason
 			} else {
 				document.exitFullscreen();
 			}
-			// document.body.requestFullscreen();
-			// renderer.domElement.requestFullscreen(); 
 		},
 		'&beta;<sub>x</sub>': betaX,
 		'&beta;<sub>y</sub>': betaY,
@@ -362,12 +332,6 @@ function createGUI() {
 	folderFOV.add( params, 'env.-facing camera', 10, 170, 1).onChange( (fov) => { fovE = fov; updateUniforms(); });   
 	folderFOV.add( params, 'screen', 10, 170, 1).onChange( setScreenFOV );   
 	folderFOV.open();
-
-	/*
-	const cameraFolder = gui.addFolder( 'Camera' );
-	cameraFolder.add( params, '<i>z</i> coordinate', 0, 5, 0.01).onChange( changeCameraDistance );
-	cameraFolder.add( params, 'point_forward');
-	*/
 }
 
 /**
@@ -391,8 +355,6 @@ function setScreenFOV(fov) {
  * or if camera's FOV has changed
  */
 function screenChanged() {
-	// alert(`new window size ${window.innerWidth} x ${window.innerHeight}`);
-
 	// in case the screen size has changed
 	if(renderer) renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -410,7 +372,6 @@ function screenChanged() {
 	} else {
 		// fovS is already vertical FOV
 		verticalFOV = fovS;
-		// alert(`vertical FOV ${verticalFOV}`);
 	}
 	cameraOutside.fov = verticalFOV;
 	cameraInside.fov = verticalFOV;
@@ -418,7 +379,6 @@ function screenChanged() {
 	// make sure the camera changes take effect
 	cameraOutside.updateProjectionMatrix();
 	cameraInside.updateProjectionMatrix();
-	// console.log(`window aspect ratio ${windowAspectRatio}, fovS ${fovS}, camera (vertical) fov ${verticalFOV}`);
 }
 
 function onWindowResize() {
@@ -454,48 +414,27 @@ function updateUniforms() {
 	}
 }
 
-/*
-function changeCameraDistance(r) {
-	controls.dispose();
-
-	// current distance of the camera from the origin
-	let r0 = Math.sqrt(cameraOutside.position.x*cameraOutside.position.x + cameraOutside.position.y*cameraOutside.position.y + cameraOutside.position.z*cameraOutside.position.z);
-	
-	// scale the coordinates so that the distance becomes r
-	cameraOutside.position.x *= r/r0;
-	cameraOutside.position.y *= r/r0;
-	cameraOutside.position.z *= r/r0;
-
-	addOrbitControls();
-}
-*/
-
 function updateTransformationMatrix() {
 	//transform to theta and phi
 	let beta2 = betaX*betaX + betaY*betaY + betaZ*betaZ;
-	let beta, gamma, theta, phi;
-	if (beta2 >=1 ){
-		/*
-		// this approach doesn't work because of the way that the components of beta are set
-    	let beta0 = Math.sqrt(beta2);
-    	beta = 0.99; 
-    	betaX *= beta/beta0;
-    	betaY *= beta/beta0;
-    	betaZ *= beta/beta0;
-	    // console.log(`Beta >= 1, scaling it to 0.99 (beta = (${betaX}, ${betaY}, ${betaZ}))`);
-		*/
+	if (beta2 >= 1 ){
+		// don't actually update the transformation matrix, but leave it as is
 		setWarning(true);
 		setInfo(`Warning: &beta; (=${Math.sqrt(beta2).toFixed(2)}) > 1; using last value of <b>&beta;</b> with |&beta;| < 1`);
   	} else {
-    	beta = Math.sqrt(beta2);
-		gamma = 1/Math.sqrt(1-beta2);
+		// beta^2 < 1
+		let beta, oneOverGamma, theta, phi;
 
-		if (beta===0){
+    	beta = Math.sqrt(beta2);
+		oneOverGamma = Math.sqrt(1-beta2);	//  1/gamma
+
+		if (beta==0){
 			theta=0
 			phi=0;
 		} else {
 			theta = Math.asin(-betaY/beta);
 			phi = Math.PI+Math.atan2(-betaX,betaZ);
+			// setInfo(`(&theta;, &phi;) = (${theta.toFixed(2)}, ${phi.toFixed(2)})`);
 		}
 
 		// re-calculate the transformation matrix
@@ -507,7 +446,7 @@ function updateTransformationMatrix() {
 		transformationMatrix.multiply(m.makeRotationX(theta));
 		// scale by 1/gamma in the directions perpendicular to beta, i.e. x and y, 
 		// if the Lorentz transformation is chosen
-		if(transformation === 'Lorentz') transformationMatrix.multiply(m.makeScale(1.0/gamma, 1.0/gamma, 1.0));
+		if(transformation === 'Lorentz') transformationMatrix.multiply(m.makeScale(oneOverGamma, oneOverGamma, 1.0));
 		// translate by beta in the direction of beta, i.e. z
 		transformationMatrix.multiply(m.makeTranslation(new THREE.Vector3(0, 0, beta)));
 		// rotate back to the original orientation
@@ -521,7 +460,6 @@ function updateTransformationMatrix() {
 			setWarning(false);
 			setInfo(`&beta; < 1; all good!`);
 		}
-		// updateUniforms();
 	}
 }
 	
@@ -533,57 +471,4 @@ function onScreenOrientationChange() {
 
 	// ... and re-create new ones, hopefully of the appropriate size
 	createVideoFeeds();
-
-	// screen.orientation.addEventListener("change", (event) => {
-	// 	const type = event.target.type;
-	// 	const angle = event.target.angle;
-	// 	alert(`ScreenOrientation change: ${type}, ${angle} degrees.  New window size ${window.innerWidth} x ${window.innerHeight}.`);
-
-	// 	// see https://developer.mozilla.org/en-US/docs/Web/API/Screen/orientation
-	// 	// switch (screen.orientation.type) {
-	// 	// 	case "landscape-primary":
-	// 	// 		console.log("That looks good.");
-	// 	// 		break;
-	// 	// 	case "landscape-secondary":
-	// 	// 		console.log("Mmmh… the screen is upside down!");
-	// 	// 		break;
-	// 	// 	case "portrait-secondary":
-	// 	// 	case "portrait-primary":
-	// 	// 		console.log("Mmmh… you should rotate your device to landscape");
-	// 	// 		break;
-	// 	// 	default:
-	// 	// 		console.log("The orientation API isn't supported in this browser :(");
-	// 	// 	}
-			
-	// });
 }
-	
-/*
-function pointForward() {
-	controls.dispose();
-	// controls.enabled = false;
-	camera.position.x = 0.0;
-	camera.position.y = 0.0;
-	camera.position.z = 4.0;
-	camera.lookAt(new THREE.Vector3(0,0,0));
-	addOrbitControls();
-	// controls.update();
-	// controls.enabled = true;
-
-	// let minPolarAngle = controls.minPolarAngle;
-	// let maxPolarAngle = controls.maxPolarAngle;
-	// let minAzimuthalAngle = controls.minAzimuthalAngle;
-	// let maxAzimuthalAngle = controls.maxAzimuthalAngle;
-
-	// controls.minPolarAngle = controls.maxPolarAngle = 0.5*Math.PI; 
-	// controls.minAzimuthalAngle = controls.maxAzimuthalAngle = 0.0;
-	// controls.update();
-
-	// controls.minPolarAngle = minPolarAngle;
-	// controls.maxPolarAngle = maxPolarAngle;
-	// controls.minAzimuthalAngle = minAzimuthalAngle;
-	// controls.maxAzimuthalAngle = maxAzimuthalAngle;
-
-	// controls.position.set
-}
-*/
