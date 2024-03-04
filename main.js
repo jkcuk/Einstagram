@@ -78,7 +78,7 @@ function init() {
 	// user interface
 
 	// handle device orientation
-	window.addEventListener("deviceorientation", onDeviceOrientationChange, true);
+	// window.addEventListener("deviceorientation", onDeviceOrientationChange, true);
 
 	// handle window resize and screen-orientation change
 	window.addEventListener("resize", onWindowResize, false);
@@ -489,12 +489,8 @@ function updateTransformationMatrix() {
 
 		// rotate the lookalike sphere according to the device orientation
 		// see https://developer.mozilla.org/en-US/docs/Web/API/Device_orientation_events/Using_device_orientation_with_3D_transforms
-		// transformationMatrix.multiply(m.makeRotationY(-boostGamma*Math.PI/180));
-		// transformationMatrix.multiply(m.makeRotationX(-boostBeta*Math.PI/180));
-		// transformationMatrix.multiply(m.makeRotationZ(-boostAlpha*Math.PI/180));
-
-		transformationMatrix.multiply(m.makeRotationY(-(deviceGamma-boostGamma)*Math.PI/180));
-		transformationMatrix.multiply(m.makeRotationX(-(deviceBeta-boostBeta)*Math.PI/180));
+		// transformationMatrix.multiply(m.makeRotationY(-(deviceGamma-boostGamma)*Math.PI/180));
+		// transformationMatrix.multiply(m.makeRotationX(-(deviceBeta-boostBeta)*Math.PI/180));
 		// transformationMatrix.multiply(m.makeRotationZ(-(deviceAlpha-boostAlpha)*Math.PI/180));
 
 		// set the lookalike sphere's transformation matrix to the matrix we just calculated
