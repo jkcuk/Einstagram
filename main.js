@@ -109,6 +109,7 @@ function createInfo() {
 function setInfo(text) {
 	// infotext = text;
 	info.innerHTML = text;	// infotext;
+	console.log(text);
 	infotime = new Date().getTime();
 	setTimeout( () => { if(new Date().getTime() - infotime > 2999) info.innerHTML = `Relativistic Distortionist, University of Glasgow` }, 3000);
 }
@@ -136,6 +137,9 @@ function animate() {
 
 	// calculate the matrix that describes the correct distortion of the lookalike sphere
 	updateTransformationMatrix();
+
+	// update uniforms related to FOV etc.
+	// updateUniforms();
 	
 	// set the camera, either to the inside camera or the outside camera
 	switch(camera)
@@ -472,16 +476,16 @@ function updateTransformationMatrix() {
 	let beta, gamma, theta, phi;
 	if (beta2 >=1 ){
 		/*
+		// this approach doesn't work because of the way that the components of beta are set
     	let beta0 = Math.sqrt(beta2);
     	beta = 0.99; 
     	betaX *= beta/beta0;
     	betaY *= beta/beta0;
     	betaZ *= beta/beta0;
-	    console.log(`Beta >= 1, scaling it to 0.99 (beta = (${betaX}, ${betaY}, ${betaZ}))`);
+	    // console.log(`Beta >= 1, scaling it to 0.99 (beta = (${betaX}, ${betaY}, ${betaZ}))`);
 		*/
 		setWarning(true);
-		setInfo(`Warning: &beta; (=${Math.sqrt(beta2)}) > 1; using previous value`);
-		console.log(`Warning: beta (=${Math.sqrt(beta2)}) > 1; using previous value`);
+		setInfo(`Warning: &beta; (=${Math.sqrt(beta2).toFixed(2)}) > 1; using last value of <b>&beta;</b> with |&beta;| < 1`);
   	} else {
     	beta = Math.sqrt(beta2);
 		gamma = 1/Math.sqrt(1-beta2);
@@ -514,11 +518,10 @@ function updateTransformationMatrix() {
 		lookalikeSphere.matrix.copy(transformationMatrix);
 
 		if(shaderMaterial.uniforms.warning.value) {
-			setInfo(`&beta; (=${Math.sqrt(beta2)}) < 1; all good!`);
-			console.log(`&beta; (=${Math.sqrt(beta2)}) < 1; all good!`);
+			setWarning(false);
+			setInfo(`&beta; < 1; all good!`);
 		}
-		setWarning(false);
-		updateUniforms();
+		// updateUniforms();
 	}
 }
 	
