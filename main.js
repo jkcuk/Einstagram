@@ -13,7 +13,12 @@ let fovU = 66;
 let fovE = 66;
 let fovS = 90;
 
-let betaX = 0.0, betaY = 0.0, betaZ = 0.0;
+// the Cartesian components of the boost, in units of c
+// ()
+let betaX = 0, betaY = 0, betaZ = 0;
+
+// device orientation
+let orientationAlpha = 0, orientationBeta = 0, orientationGamma = 0;
 
 let cameraOutsideDistance = 4.0;
 
@@ -85,12 +90,12 @@ function init() {
 
 function handleOrientation(event) {
 	const absolute = event.absolute;
-	const alpha = event.alpha;
-	const beta = event.beta;
-	const gamma = event.gamma;
+	orientationAlpha = event.alpha;
+	orientationBeta = event.beta;
+	orientationGamma = event.gamma;
   
 	// Do stuff with the new orientation data
-	setInfo(`Orientation: &alpha; = ${alpha.toFixed(2)}, &beta; = ${beta.toFixed(2)}, &gamma; = ${gamma.toFixed(2)}`);
+	setInfo(`Orientation: &alpha; = ${orientationAlpha.toFixed(2)}, &beta; = ${orientationBeta.toFixed(2)}, &gamma; = ${orientationGamma.toFixed(2)}`);
   }
 
 /** 
@@ -473,6 +478,12 @@ function updateTransformationMatrix() {
 		// rotate back to the original orientation
 		transformationMatrix.multiply(m.makeRotationX(-theta));
 		transformationMatrix.multiply(m.makeRotationY(-phi));
+
+		// rotate the lookalike sphere according to the device orientation
+		// see https://developer.mozilla.org/en-US/docs/Web/API/Device_orientation_events/Using_device_orientation_with_3D_transforms
+		transformationMatrix.multiply(m.makeRotationZ(orientationAlpha));
+		transformationMatrix.multiply(m.makeRotationX(orientationBeta));
+		transformationMatrix.multiply(m.makeRotationY(orientationGamma));
 
 		// set the lookalike sphere's transformation matrix to the matrix we just calculated
 		lookalikeSphere.matrix.copy(transformationMatrix);
