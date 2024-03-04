@@ -495,7 +495,7 @@ function updateTransformationMatrix() {
 
 		transformationMatrix.multiply(m.makeRotationY(-(deviceGamma-boostGamma)*Math.PI/180));
 		transformationMatrix.multiply(m.makeRotationX(-(deviceBeta-boostBeta)*Math.PI/180));
-		transformationMatrix.multiply(m.makeRotationZ(-(deviceAlpha-boostAlpha)*Math.PI/180));
+		// transformationMatrix.multiply(m.makeRotationZ(-(deviceAlpha-boostAlpha)*Math.PI/180));
 
 		// set the lookalike sphere's transformation matrix to the matrix we just calculated
 		lookalikeSphere.matrix.copy(transformationMatrix);
