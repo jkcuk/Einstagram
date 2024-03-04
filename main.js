@@ -491,7 +491,7 @@ function updateTransformationMatrix() {
 		// see https://developer.mozilla.org/en-US/docs/Web/API/Device_orientation_events/Using_device_orientation_with_3D_transforms
 		transformationMatrix.multiply(m.makeRotationY(-deviceGamma*Math.PI/180));
 		transformationMatrix.multiply(m.makeRotationX(-deviceBeta*Math.PI/180));
-		transformationMatrix.multiply(m.makeRotationZ(deviceAlpha*Math.PI/180));
+		transformationMatrix.multiply(m.makeRotationZ(-deviceAlpha*Math.PI/180));
 
 		// set the lookalike sphere's transformation matrix to the matrix we just calculated
 		lookalikeSphere.matrix.copy(transformationMatrix);
