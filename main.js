@@ -51,9 +51,10 @@ function init() {
 	// }
 
 	scene = new THREE.Scene();
+	scene.background = new THREE.Color( 'skyblue' );
 	let windowAspectRatio = window.innerWidth / window.innerHeight;
-	cameraInside = new THREE.PerspectiveCamera( 10, windowAspectRatio, 0.0001, 3 );
-	cameraOutside = new THREE.PerspectiveCamera( 10, windowAspectRatio, 0.0001, 10 );
+	cameraInside = new THREE.PerspectiveCamera( fovS, windowAspectRatio, 0.00001, 2.1 );
+	cameraOutside = new THREE.PerspectiveCamera( fovS, windowAspectRatio, 0.001, 10 );
 	cameraOutside.position.z = cameraOutsideDistance;
 	screenChanged();
 	
@@ -68,6 +69,9 @@ function init() {
 
 	// user interface
 
+	// handle device orientation
+	window.addEventListener("deviceorientation", handleOrientation, true);
+
 	// handle window resize and screen-orientation change
 	window.addEventListener("resize", onWindowResize, false);
 	screen.orientation.addEventListener("change", onScreenOrientationChange);
@@ -75,9 +79,23 @@ function init() {
 	// add orbit controls to outside camera
 	addOrbitControls();	// add to outside camera
 
+	// the controls menu
 	createGUI();
 }
 
+function handleOrientation(event) {
+	const absolute = event.absolute;
+	const alpha = event.alpha;
+	const beta = event.beta;
+	const gamma = event.gamma;
+  
+	// Do stuff with the new orientation data
+	setInfo(`Orientation: &alpha; = ${alpha.toFixed(2)}, &beta; = ${beta.toFixed(2)}, &gamma; = ${gamma.toFixed(2)}`);
+  }
+
+/** 
+ * Add a text field to the bottom left corner of the screen
+ */
 function createInfo() {
 	// see https://stackoverflow.com/questions/15248872/dynamically-create-2d-text-in-three-js
 	info.style.position = 'absolute';
@@ -95,9 +113,9 @@ function setInfo(text) {
 	info.innerHTML = text;
 	console.log(text);
 
-	// remove the info text after 3s
+	// show the text only for 3 seconds
 	infotime = new Date().getTime();
-	setTimeout( () => { if(new Date().getTime() - infotime > 2999) info.innerHTML = `Relativistic Distortionist, University of Glasgow` }, 3000);
+	setTimeout( () => { if(new Date().getTime() - infotime > 2999) info.innerHTML = `Relativistic Distortionist, University of Glasgow, <a href="https://github.com/jkcuk/relativisticDistortionist">https://github.com/jkcuk/relativisticDistortionist</a>` }, 3000);
 }
 
 function showInfo() {
@@ -111,7 +129,6 @@ function setWarning(warning) {
 }
 
 function animate() {
-	// console.log(camera.position);
 	requestAnimationFrame( animate );
 
 	// calculate the matrix that describes the correct distortion of the lookalike sphere
@@ -152,6 +169,7 @@ function createVideoFeeds() {
 				// console.log(`Video stream playing, size ${videoU.videoWidth} x ${videoU.videoHeight}`);
 				aspectRatioU = videoU.videoWidth / videoU.videoHeight;
 				updateUniforms();
+				// setInfo(`User-facing camera ${videoU.videoWidth} &times; ${videoU.videoHeight}`);
 			});
 		} ).catch( function ( error ) {
 			setInfo(`Unable to access camera/webcam (Error: ${error})`);
@@ -306,7 +324,7 @@ function createGUI() {
 				  );
 				});
 				// allow screen orientation changes
-				// screen.orientation.unlock();	// doesn't work, for some reason
+				// screen.orientation.unlock();
 			} else {
 				document.exitFullscreen();
 			}
@@ -355,6 +373,8 @@ function setScreenFOV(fov) {
  * or if camera's FOV has changed
  */
 function screenChanged() {
+	// alert(`new window size ${window.innerWidth} x ${window.innerHeight}`);
+
 	// in case the screen size has changed
 	if(renderer) renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -372,6 +392,7 @@ function screenChanged() {
 	} else {
 		// fovS is already vertical FOV
 		verticalFOV = fovS;
+		// alert(`vertical FOV ${verticalFOV}`);
 	}
 	cameraOutside.fov = verticalFOV;
 	cameraInside.fov = verticalFOV;
