@@ -19,10 +19,10 @@ let fovS = 90;
 let betaX = 0, betaY = 0, betaZ = 0;
 
 // device orientation
-let deviceAlpha = 0, deviceBeta = 90, deviceGamma = 0;
+// let deviceAlpha = 0, deviceBeta = 90, deviceGamma = 0;
 
 // boost orientation
-let boostAlpha = 0, boostBeta = 90, boostGamma = 0;
+// let boostAlpha = 0, boostBeta = 90, boostGamma = 0;
 
 let cameraOutsideDistance = 4.0;
 
@@ -79,10 +79,12 @@ function init() {
 	// user interface
 
 	// handle device orientation
-	window.addEventListener("deviceorientation", handleOrientation, true);
+	// window.addEventListener("deviceorientation", handleOrientation, true);
 
-	// handle window resize and screen-orientation change
+	// handle window resize
 	window.addEventListener("resize", onWindowResize, false);
+
+	// handle screen-orientation (landscape/portrait) change
 	screen.orientation.addEventListener("change", onScreenOrientationChange);
 
 	// add orbit controls to outside camera
@@ -92,15 +94,15 @@ function init() {
 	createGUI();
 }
 
-function handleOrientation(event) {
-	const absolute = event.absolute;
-	deviceAlpha = event.alpha;
-	deviceBeta = event.beta;
-	deviceGamma = event.gamma;
+// function handleOrientation(event) {
+// 	const absolute = event.absolute;
+// 	deviceAlpha = event.alpha;
+// 	deviceBeta = event.beta;
+// 	deviceGamma = event.gamma;
   
-	// Do stuff with the new orientation data
-	setInfo(`Orientation: &alpha; = ${deviceAlpha.toFixed(2)}, &beta; = ${deviceBeta.toFixed(2)}, &gamma; = ${deviceGamma.toFixed(2)}`);
-  }
+// 	// Do stuff with the new orientation data
+// 	setInfo(`Orientation: &alpha; = ${deviceAlpha.toFixed(2)}, &beta; = ${deviceBeta.toFixed(2)}, &gamma; = ${deviceGamma.toFixed(2)}`);
+//   }
 
 /** 
  * Add a text field to the bottom left corner of the screen
@@ -485,9 +487,9 @@ function updateTransformationMatrix() {
 
 		// rotate the lookalike sphere according to the device orientation
 		// see https://developer.mozilla.org/en-US/docs/Web/API/Device_orientation_events/Using_device_orientation_with_3D_transforms
-		transformationMatrix.multiply(m.makeRotationZ(deviceAlpha*Math.PI/180));
-		transformationMatrix.multiply(m.makeRotationX(-deviceBeta*Math.PI/180));
-		transformationMatrix.multiply(m.makeRotationY(deviceGamma*Math.PI/180));
+		// transformationMatrix.multiply(m.makeRotationZ(deviceAlpha*Math.PI/180));
+		// transformationMatrix.multiply(m.makeRotationX(-deviceBeta*Math.PI/180));
+		// transformationMatrix.multiply(m.makeRotationY(deviceGamma*Math.PI/180));
 
 		// set the lookalike sphere's transformation matrix to the matrix we just calculated
 		lookalikeSphere.matrix.copy(transformationMatrix);
