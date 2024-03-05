@@ -9,8 +9,9 @@ let renderer, videoU, videoE;
 let cameraInside, cameraOutside;
 let controls, shaderMaterial, geometry, lookalikeSphere, transformationMatrix;
 
-let fovU = 66;
-let fovE = 66;
+// Nokia HR20, according to https://www.camerafv5.com/devices/manufacturers/hmd_global/nokia_xr20_ttg_0/
+let fovU = 67.3;
+let fovE = 68.3;
 let fovS = 90;
 
 // the Cartesian components of the boost, in units of c
@@ -78,12 +79,10 @@ function init() {
 	// user interface
 
 	// handle device orientation
-	// window.addEventListener("deviceorientation", onDeviceOrientationChange, true);
+	window.addEventListener("deviceorientation", handleOrientation, true);
 
 	// handle window resize and screen-orientation change
 	window.addEventListener("resize", onWindowResize, false);
-	
-	// handle screen orientation (landscape/portrait)
 	screen.orientation.addEventListener("change", onScreenOrientationChange);
 
 	// add orbit controls to outside camera
@@ -93,10 +92,7 @@ function init() {
 	createGUI();
 }
 
-/**
- * Handle device orientation
- */
-function onDeviceOrientationChange(event) {
+function handleOrientation(event) {
 	const absolute = event.absolute;
 	deviceAlpha = event.alpha;
 	deviceBeta = event.beta;
@@ -273,7 +269,7 @@ function createLookalikeSphere() {
 				} else {
 					// user-facing camera
 					if((abs(zPlaneCoord.x) < tanHalfFovHU) && (abs(zPlaneCoord.y) < tanHalfFovVU)) {
-						gl_FragColor = texture2D(textureU, vec2(0.5+0.5*zPlaneCoord.x/tanHalfFovHU, 0.5+0.5*zPlaneCoord.y/tanHalfFovVU));
+						gl_FragColor = texture2D(textureU, vec2(0.5-0.5*zPlaneCoord.x/tanHalfFovHU, 0.5+0.5*zPlaneCoord.y/tanHalfFovVU));
 					} else {
 						gl_FragColor = vec4(0.9, 0.0, 0.0, 1.0);
 					}
@@ -489,9 +485,9 @@ function updateTransformationMatrix() {
 
 		// rotate the lookalike sphere according to the device orientation
 		// see https://developer.mozilla.org/en-US/docs/Web/API/Device_orientation_events/Using_device_orientation_with_3D_transforms
-		// transformationMatrix.multiply(m.makeRotationY(-(deviceGamma-boostGamma)*Math.PI/180));
-		// transformationMatrix.multiply(m.makeRotationX(-(deviceBeta-boostBeta)*Math.PI/180));
-		// transformationMatrix.multiply(m.makeRotationZ(-(deviceAlpha-boostAlpha)*Math.PI/180));
+		transformationMatrix.multiply(m.makeRotationZ(deviceAlpha*Math.PI/180));
+		transformationMatrix.multiply(m.makeRotationX(-deviceBeta*Math.PI/180));
+		transformationMatrix.multiply(m.makeRotationY(deviceGamma*Math.PI/180));
 
 		// set the lookalike sphere's transformation matrix to the matrix we just calculated
 		lookalikeSphere.matrix.copy(transformationMatrix);
