@@ -6,7 +6,7 @@ Interactive simulation of the <a href="https://en.wikipedia.org/wiki/Relativisti
 
 **β** = (β<sub>x</sub>, β<sub>y</sub>, β<sub>z</sub>) is the simulated velocity of the viewer, in units of _c_, the speed of light. The (left-handed) coordinate system is defined such that _x_ points to the right, _y_ upwards, and _z_ into the screen.
 
-The lookalike-sphere construction projects the view onto a sphere that is centred on the observer and then distorts and translates this sphere such that the view from the centre of the undistorted and undisplaced sphere becomes the relativistically distorted view.  The distorted lookalike sphere can be visualised by setting "Camera position" to "Outside lookalike sphere".
+The lookalike-sphere construction projects the view onto a sphere that is centred on the observer and then distorts and translates this sphere such that the view from the centre of the undistorted and undisplaced sphere becomes the relativistically distorted view.  The distorted lookalike sphere can be visualised by setting "Camera position" to "Outside lookalike sphere".  To help with orientation, the part of the forward-facing hemisphere of the lookalike sphere surrounding the environment-facing camera image is coloured white (like bicycle headlights), the  rear-facing hemisphere surrounding the user-facing camera image is coloured red (like rear lights).
 
 In addition to purely relativistic effects, the relativistic distortion takes into account time-of-flight effects.  The distortion due to time-of-flight effects alone can be simulated by setting "Transformation" to "Galileo"; it corresponds to a pure translation of the lookalike sphere.
 
