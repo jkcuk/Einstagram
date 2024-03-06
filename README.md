@@ -10,19 +10,20 @@ The relativistic distortion is the change in direction in which objects in motio
 
 The **lookalike-sphere construction** projects the view onto a sphere that is centred on the observer and then distorts and translates this sphere such that the view from the centre of the undistorted and undisplaced sphere becomes the relativistically distorted view.  The distorted lookalike sphere can be visualised by setting "Camera position" to "Outside lookalike sphere".  To help with orientation, the part of the forward-facing hemisphere of the lookalike sphere surrounding the environment-facing camera image is coloured white (like bicycle headlights), the rear-facing hemisphere surrounding the user-facing camera image is coloured red (like rear lights).
 
-![Screenshot_20240306-131646](https://github.com/jkcuk/Einstagram/assets/44874423/6314a32d-6635-42b2-a065-f46fff3f04a5)
-_Lookalike sphere.  The image projected into the centre of the white hemisphere is a frame from the video feed from the device's environment-facing camera, ..._
 
-![Screenshot_20240306-131718](https://github.com/jkcuk/Einstagram/assets/44874423/32a7e88c-b399-4b20-9332-d6408fceb9fa)
+_Loo![Screenshot_20240306-161205](https://github.com/jkcuk/Einstagram/assets/44874423/c7f95514-6092-413c-949b-026289082481)
+kalike sphere.  The image projected into the centre of the white hemisphere is a frame from the video feed from the device's environment-facing camera, ..._
+
+![Screenshot_20240306-161220](https://github.com/jkcuk/Einstagram/assets/44874423/d7e7d967-3867-422c-bd58-e7d34953e20d)
 _... the image projected into the centre of the red hemisphere is from the user-facing camera's video feed._
 
-![Screenshot_20240306-141328](https://github.com/jkcuk/Einstagram/assets/44874423/5c7a2869-d90b-4f3e-81a3-cef27f53248b)
+![Screenshot_20240306-161256](https://github.com/jkcuk/Einstagram/assets/44874423/8f58fd56-50b6-42c6-8533-f2926483e835)
 _From the centre of the lookalike sphere, and looking in the direction of the white hemisphere, the inside of the lookalike sphere looks like the undistorted video feed from the environment-facing camera.  The video feed from the user-facing camera can be seen in the opposite direction._
 
-![Screenshot_20240306-131540](https://github.com/jkcuk/Einstagram/assets/44874423/812d7c95-85fe-4a5f-92ea-51b553dc1753)
-_Distorted lookalike sphere, seen from outside..._
+_![Screenshot_20240306-161520](https://github.com/jkcuk/Einstagram/assets/44874423/fa8d7610-84bc-4be0-a441-d9aa926dac6d)
+Distorted lookalike sphere, seen from outside..._
 
-![Screenshot_20240306-131346](https://github.com/jkcuk/Einstagram/assets/44874423/588a7336-826a-4a67-8030-d98c8618a422)
+![Screenshot_20240306-161359](https://github.com/jkcuk/Einstagram/assets/44874423/3a1c56d9-0af4-4896-be24-5fd7bc9f952c)
 _... and from inside.  This is the relativistically distorted view for a camera moving with velocity **β**_c_ in the scene (which is assumed to be at rest)._
 
 In addition to purely relativistic effects, the relativistic distortion takes into account **time-of-flight effects**.  The distortion due to time-of-flight effects alone can be simulated by setting "Transformation" to "Galileo"; it corresponds to a pure translation of the lookalike sphere.
