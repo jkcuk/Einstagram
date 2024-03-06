@@ -2,7 +2,9 @@
 by Gordon Wells, YiChen Wu, Maik Locher, and Johannes Courtial, with thanks to Richard Bowman<br>
 _School of Physics & Astronomy, University of Glasgow_
 
-Interactive simulation of the <a href="https://en.wikipedia.org/wiki/Relativistic_aberration">relativistic distortion</a> using the lookalike-sphere construction.   The wavelength shift and the <a href="https://en.wikipedia.org/wiki/Relativistic_beaming">headlight effect</a> associated with the <a href="https://en.wikipedia.org/wiki/Relativistic_Doppler_effect">relativistic Doppler effect</a> are not simulated.
+Interactive simulation of the <a href="https://en.wikipedia.org/wiki/Relativistic_aberration">relativistic distortion</a> using the lookalike-sphere construction.   
+
+The relativistic distortion is the change in direction in which objects in motion relative to the observer are seen.  The wavelength shift associated with the <a href="https://en.wikipedia.org/wiki/Relativistic_Doppler_effect">(relativistic) Doppler effect</a> and the change in intensity due to the <a href="https://en.wikipedia.org/wiki/Relativistic_beaming">headlight effect</a> are not simulated.
 
 **β** = (β<sub>x</sub>, β<sub>y</sub>, β<sub>z</sub>) is the simulated velocity of the viewer, in units of _c_, the speed of light. The (left-handed) coordinate system is defined such that _x_ points to the right, _y_ upwards, and _z_ into the screen.
 
