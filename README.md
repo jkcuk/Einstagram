@@ -2,6 +2,8 @@
 by Gordon Wells, YiChen Wu, Maik Locher, and Johannes Courtial, with thanks to Richard Bowman<br>
 _School of Physics & Astronomy, University of Glasgow_
 
+**Web app**: <href url="https://jkcuk.github.io/Einstagram/">https://jkcuk.github.io/Einstagram/</href>
+
 Interactive simulation of the <a href="https://en.wikipedia.org/wiki/Relativistic_aberration">relativistic distortion</a> using the lookalike-sphere construction.   
 
 The relativistic distortion is the change in direction in which objects in motion relative to the observer are seen.  The wavelength shift associated with the <a href="https://en.wikipedia.org/wiki/Relativistic_Doppler_effect">(relativistic) Doppler effect</a> and the change in intensity due to the <a href="https://en.wikipedia.org/wiki/Relativistic_beaming">headlight effect</a> are not simulated.
@@ -35,7 +37,3 @@ For the simulation to be correct, the FOV of the (user-facing and environment-fa
 The FOV of the screen represents the angle, in degrees, subtended by the screen from the viewer's position.  Changing it effectively zooms in and out of the view without affecting the distortion.
 
 Some devices have only a single camera, and other devices do not allow simultaneous video streaming from both cameras.  The behaviour is then device- and browser-dependent.
-
-**Web app URL**
-
-The **web app** can be run at <href url="https://jkcuk.github.io/Einstagram/">https://jkcuk.github.io/Einstagram/</href>.
