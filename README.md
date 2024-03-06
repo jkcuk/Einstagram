@@ -23,7 +23,7 @@ _From the centre of the lookalike sphere, and looking in the direction of the wh
 _Distorted lookalike sphere, seen from outside..._
 
 ![Screenshot_20240306-131346](https://github.com/jkcuk/relativisticDistortionist/assets/44874423/588a7336-826a-4a67-8030-d98c8618a422)
-_... and from inside.  This is the relativistically distorted view for a camera moving with velocity **β** _c_ in the scene (which is assumed to be at rest)._
+_... and from inside.  This is the relativistically distorted view for a camera moving with velocity **β**_c_ in the scene (which is assumed to be at rest)._
 
 In addition to purely relativistic effects, the relativistic distortion takes into account **time-of-flight effects**.  The distortion due to time-of-flight effects alone can be simulated by setting "Transformation" to "Galileo"; it corresponds to a pure translation of the lookalike sphere.
 
