@@ -13,8 +13,8 @@ The relativistic distortion is the change in direction in which objects in motio
 The **lookalike-sphere construction** projects the view onto a sphere that is centred on the observer and then distorts and translates this sphere such that the view from the centre of the undistorted and undisplaced sphere becomes the relativistically distorted view.  The distorted lookalike sphere can be visualised by setting "Camera position" to "Outside lookalike sphere".  To help with orientation, the part of the forward-facing hemisphere of the lookalike sphere surrounding the environment-facing camera image is coloured white (like bicycle headlights), the rear-facing hemisphere surrounding the user-facing camera image is coloured red (like rear lights).
 
 
-_Loo![Screenshot_20240306-161205](https://github.com/jkcuk/Einstagram/assets/44874423/c7f95514-6092-413c-949b-026289082481)
-kalike sphere.  The image projected into the centre of the white hemisphere is a frame from the video feed from the device's environment-facing camera, ..._
+![Screenshot_20240306-161205](https://github.com/jkcuk/Einstagram/assets/44874423/c7f95514-6092-413c-949b-026289082481)
+_Lookalike sphere.  The image projected into the centre of the white hemisphere is a frame from the video feed from the device's environment-facing camera, ..._
 
 ![Screenshot_20240306-161220](https://github.com/jkcuk/Einstagram/assets/44874423/d7e7d967-3867-422c-bd58-e7d34953e20d)
 _... the image projected into the centre of the red hemisphere is from the user-facing camera's video feed._
