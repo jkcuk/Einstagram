@@ -126,13 +126,13 @@ function setInfo(text) {
 
 	// show the text only for 3 seconds
 	infotime = new Date().getTime();
-	setTimeout( () => { if(new Date().getTime() - infotime > 2999) info.innerHTML = `Relativistic Distortionist, University of Glasgow, <a href="https://github.com/jkcuk/relativisticDistortionist">https://github.com/jkcuk/relativisticDistortionist</a>` }, 3000);
+	setTimeout( () => { if(new Date().getTime() - infotime > 2999) info.innerHTML = `Einstagram, University of Glasgow, <a href="https://github.com/jkcuk/Einstagram">https://github.com/jkcuk/Einstagram</a>` }, 3000);
 }
 
 function showInfo() {
 	if(new Date().getTime() - infotime < 1000) info.innerHTML = infotext;
-	else info.innerHTML =  `Relativistic Distortionist, University of Glasgow`;
-	// else info.innerHTML =  `Relativistic Distortionist, University of Glasgow, ${transformation} transformation, &beta; = (${betaX}, ${betaY}, ${betaZ}), screen horiz. FOV = ${fovS}&deg;, ${camera}`;
+	else info.innerHTML =  `Einstagram, University of Glasgow`;
+	// else info.innerHTML =  `Einstagram, University of Glasgow, ${transformation} transformation, &beta; = (${betaX}, ${betaY}, ${betaZ}), screen horiz. FOV = ${fovS}&deg;, ${camera}`;
 }
 
 function setWarning(warning) {
