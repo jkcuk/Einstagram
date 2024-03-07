@@ -167,7 +167,7 @@ function animate() {
 					title: 'Einstagram image',
 					text: 'Check out this image rendered using Three.js!',
 					url: image,
-					files: [new File([image], 'Einstagram.jpg', {type: 'image/jpg'})]
+					// files: [new File([image], 'Einstagram.jpg', {type: 'image/jpg'})]
 				});
 			} else {
 				throw new Error('Web Share API is not supported in this browser.');
