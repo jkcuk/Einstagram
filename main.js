@@ -521,7 +521,7 @@ async function share() {
         if (navigator.share) {
             await navigator.share({
                 title: 'Einstagram image',
-                files: [new File([screenshot], 'Einstagram.png', {type: 'image/png'})]
+                files: [new File([image], 'Einstagram.png', {type: 'image/png'})]
             });
         } else {
             throw new Error('Web Share API is not supported in this browser.');
