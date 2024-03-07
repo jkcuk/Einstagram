@@ -159,15 +159,15 @@ function animate() {
 
 	if(share) {
 		try {
-			const image = renderer.domElement.toDataURL('image/png');
+			const image = renderer.domElement.toDataURL('image/jpg');
 	
 			// Use the Web Share API to share the screenshot
 			if (navigator.share) {
 				navigator.share({
 					title: 'Einstagram image',
-					// text: 'Check out this image rendered using Three.js!',
-					// url: image
-					files: [new File([image], 'Einstagram.png', {type: 'image/png'})]
+					text: 'Check out this image rendered using Three.js!',
+					url: image,
+					files: [new File([image], 'Einstagram.jpg', {type: 'image/jpg'})]
 				});
 			} else {
 				throw new Error('Web Share API is not supported in this browser.');
