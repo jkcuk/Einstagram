@@ -67,7 +67,7 @@ function init() {
 	cameraOutside.position.z = cameraOutsideDistance;
 	screenChanged();
 	
-	renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, });
+	renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	document.body.appendChild( renderer.domElement );
@@ -521,7 +521,9 @@ async function share() {
         if (navigator.share) {
             await navigator.share({
                 title: 'Einstagram image',
-                files: [new File([image], 'Einstagram.png', {type: 'image/png'})]
+				text: 'Check out this image rendered using Three.js!',
+                url: image
+                // files: [new File([image], 'Einstagram.png', {type: 'image/png'})]
             });
         } else {
             throw new Error('Web Share API is not supported in this browser.');
