@@ -155,6 +155,28 @@ function animate() {
 		default:
 			renderer.render( scene, cameraInside );
 	}
+
+	if(share) {
+		try {
+			const image = renderer.domElement.toDataURL('image/png');
+	
+			// Use the Web Share API to share the screenshot
+			if (navigator.share) {
+				await navigator.share({
+					title: 'Einstagram image',
+					// text: 'Check out this image rendered using Three.js!',
+					// url: image
+					files: [new File([image], 'Einstagram.png', {type: 'image/png'})]
+				});
+			} else {
+				throw new Error('Web Share API is not supported in this browser.');
+			}
+		} catch (error) {
+			console.error('Error:', error);
+			// Handle errors
+		}
+		share = false;
+	}
 }
 
 function createVideoFeeds() {
@@ -340,7 +362,7 @@ function createGUI() {
 				document.exitFullscreen();
 			}
 		},
-		'Share image': share,
+		'Share image': function() { share = true; },
 		'&beta;<sub>x</sub>': betaX,
 		'&beta;<sub>y</sub>': betaY,
 		'&beta;<sub>z</sub>': betaZ,
@@ -521,9 +543,9 @@ async function share() {
         if (navigator.share) {
             await navigator.share({
                 title: 'Einstagram image',
-				text: 'Check out this image rendered using Three.js!',
-                url: image
-                // files: [new File([image], 'Einstagram.png', {type: 'image/png'})]
+				// text: 'Check out this image rendered using Three.js!',
+                // url: image
+                files: [new File([image], 'Einstagram.png', {type: 'image/png'})]
             });
         } else {
             throw new Error('Web Share API is not supported in this browser.');
