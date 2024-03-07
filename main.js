@@ -340,6 +340,9 @@ function createGUI() {
 				document.exitFullscreen();
 			}
 		},
+		'Share': function() {
+			share();
+		},
 		'&beta;<sub>x</sub>': betaX,
 		'&beta;<sub>y</sub>': betaY,
 		'&beta;<sub>z</sub>': betaZ,
@@ -351,6 +354,7 @@ function createGUI() {
 	}
 
 	gui.add(params, 'Toggle fullscreen');
+	gui.add(params, 'Share');
 	const folderBeta = gui.addFolder( '&beta;' );
 	folderBeta.add( params, '&beta;<sub>x</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaX = value; updateTransformationMatrix(); })
 	folderBeta.add( params, '&beta;<sub>y</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaY = value; updateTransformationMatrix(); })
@@ -509,4 +513,24 @@ function onScreenOrientationChange() {
 
 	// ... and re-create new ones, hopefully of the appropriate size
 	createVideoFeeds();
+}
+
+async function share() {
+	try {
+        const image = renderer.domElement.toDataURL('image/png');
+
+        // Use the Web Share API to share the screenshot
+        if (navigator.share) {
+            await navigator.share({
+                title: 'Einstagram image',
+                files: [new File([screenshot], 'Einstagram.png', {type: 'image/png'})]
+            });
+        } else {
+            throw new Error('Web Share API is not supported in this browser.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        // Handle errors
+    }
+
 }
