@@ -340,9 +340,7 @@ function createGUI() {
 				document.exitFullscreen();
 			}
 		},
-		'Share': function() {
-			share();
-		},
+		'Share': share,
 		'&beta;<sub>x</sub>': betaX,
 		'&beta;<sub>y</sub>': betaY,
 		'&beta;<sub>z</sub>': betaZ,
