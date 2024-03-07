@@ -166,7 +166,7 @@ function animate() {
 				navigator.share({
 					title: 'Einstagram image',
 					text: 'Check out this image rendered using Three.js!',
-					url: image,
+					url: image
 					// files: [new File([image], 'Einstagram.jpg', {type: 'image/jpg'})]
 				});
 			} else {
