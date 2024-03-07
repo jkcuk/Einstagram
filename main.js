@@ -163,7 +163,7 @@ function animate() {
 	
 			// Use the Web Share API to share the screenshot
 			if (navigator.share) {
-				await navigator.share({
+				navigator.share({
 					title: 'Einstagram image',
 					// text: 'Check out this image rendered using Three.js!',
 					// url: image
