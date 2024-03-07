@@ -8,6 +8,7 @@ let aspectRatioU = 4.0/3.0, aspectRatioE = 4.0/3.0;
 let renderer, videoU, videoE;
 let cameraInside, cameraOutside;
 let controls, shaderMaterial, geometry, lookalikeSphere, transformationMatrix;
+let share = false;
 
 // Nokia HR20, according to https://www.camerafv5.com/devices/manufacturers/hmd_global/nokia_xr20_ttg_0/
 let fovU = 67.3;
