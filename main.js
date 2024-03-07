@@ -536,6 +536,7 @@ function onScreenOrientationChange() {
 	createVideoFeeds();
 }
 
+/*
 async function share() {
 	try {
         const image = renderer.domElement.toDataURL('image/png');
@@ -555,5 +556,5 @@ async function share() {
         console.error('Error:', error);
         // Handle errors
     }
-
 }
+*/
