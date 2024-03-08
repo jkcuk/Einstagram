@@ -375,7 +375,7 @@ function createGUI() {
 	}
 
 	gui.add(params, 'Toggle fullscreen');
-	gui.add(params, 'Share image');
+	// gui.add(params, 'Share image');
 	const folderBeta = gui.addFolder( '&beta;' );
 	folderBeta.add( params, '&beta;<sub>x</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaX = value; updateTransformationMatrix(); })
 	folderBeta.add( params, '&beta;<sub>y</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaY = value; updateTransformationMatrix(); })
