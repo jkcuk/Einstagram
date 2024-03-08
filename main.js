@@ -69,7 +69,8 @@ function init() {
 	cameraOutside.position.z = cameraOutsideDistance;
 	screenChanged();
 	
-	renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+	// renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+	renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true });
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	document.body.appendChild( renderer.domElement );
