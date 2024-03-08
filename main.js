@@ -29,8 +29,6 @@ let cameraOutsideDistance = 4.0;
 let info = document.createElement('div');
 let infotime;	// the time the last info was posted
 
-let share = false;
-
 init();
 animate();
 
@@ -169,49 +167,6 @@ function animate() {
 		case 'Inside lookalike sphere':
 		default:
 			renderer.render( scene, cameraInside );
-	}
-
-	if(share) {
-		try {
-			const imageURI = renderer.domElement.toDataURL('image/png');
-
-			fetch(imageURI)
-  			.then(response => response.blob())
- 			 .then(blob => {
-				const file = new File([blob], 'Einstagram.png', { type: blob.type });
-	
-				// Use the Web Share API to share the screenshot
-				if (navigator.share) {
-					navigator.share({
-						title: 'Einstagram image',
-						text: 'Check out this image rendered using Einstagram!',
-						files: [file],
-					});
-				} else {
-					throw new Error('Web Share API is not supported in this browser.');
-				}	
-			})
-  			.catch(error => {
-				console.error('Error:', error);
-			});
-			/*
-			const blob = await (await fetch(imageURI)).blob();
-			const file = new File([blob], 'Einstagram.png', { type: blob.type });
-	
-			// Use the Web Share API to share the screenshot
-			if (navigator.share) {
-				navigator.share({
-					title: 'Einstagram image',
-					text: 'Check out this image rendered using Einstagram!',
-					files: [file],
-				});
-			} else {
-				throw new Error('Web Share API is not supported in this browser.');
-			}
-			*/
-		} catch (error) {
-			console.error('Error:', error);
-		}	
 	}
 }
 
@@ -398,7 +353,7 @@ function createGUI() {
 				document.exitFullscreen();
 			}
 		},
-		'Share image': function() { share = true; },
+		'Share image': share,
 		'&beta;<sub>x</sub>': betaX,
 		'&beta;<sub>y</sub>': betaY,
 		'&beta;<sub>z</sub>': betaZ,
@@ -571,7 +526,48 @@ function onScreenOrientationChange() {
 	createVideoFeeds();
 }
 
-async function share2() {
+async function share() {
+		try {
+			const imageURI = renderer.domElement.toDataURL('image/png');
+
+			fetch(imageURI)
+  			.then(response => response.blob())
+ 			 .then(blob => {
+				const file = new File([blob], 'Einstagram.png', { type: blob.type });
+	
+				// Use the Web Share API to share the screenshot
+				if (navigator.share) {
+					navigator.share({
+						title: 'Einstagram image',
+						text: 'Check out this image rendered using Einstagram!',
+						files: [file],
+					});
+				} else {
+					throw new Error('Web Share API is not supported in this browser.');
+				}	
+			})
+  			.catch(error => {
+				console.error('Error:', error);
+			});
+			/*
+			const blob = await (await fetch(imageURI)).blob();
+			const file = new File([blob], 'Einstagram.png', { type: blob.type });
+	
+			// Use the Web Share API to share the screenshot
+			if (navigator.share) {
+				navigator.share({
+					title: 'Einstagram image',
+					text: 'Check out this image rendered using Einstagram!',
+					files: [file],
+				});
+			} else {
+				throw new Error('Web Share API is not supported in this browser.');
+			}
+			*/
+		} catch (error) {
+			console.error('Error:', error);
+		}	
+	/*
 	try {
         const image = renderer.domElement.toDataURL('image/png');
 
@@ -590,4 +586,5 @@ async function share2() {
         console.error('Error:', error);
         // Handle errors
     }
+	*/
 }
