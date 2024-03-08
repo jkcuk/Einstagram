@@ -8,7 +8,6 @@ let aspectRatioU = 4.0/3.0, aspectRatioE = 4.0/3.0;
 let renderer, videoU, videoE;
 let cameraInside, cameraOutside;
 let controls, shaderMaterial, geometry, lookalikeSphere, transformationMatrix;
-let share = false;
 
 // Nokia HR20, according to https://www.camerafv5.com/devices/manufacturers/hmd_global/nokia_xr20_ttg_0/
 let fovU = 67.3;
@@ -29,6 +28,8 @@ let cameraOutsideDistance = 4.0;
 
 let info = document.createElement('div');
 let infotime;	// the time the last info was posted
+
+let share = false;
 
 init();
 animate();
@@ -72,6 +73,18 @@ function init() {
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	document.body.appendChild( renderer.domElement );
+
+	setTimeout( function() {
+		
+		var dataURL = renderer.domElement.toDataURL();
+		
+		var link = document.createElement("a");
+		link.download = "demo.png";
+		link.href = dataURL;
+		link.target = "_blank";
+		link.click();
+	
+	}, 1000 );
 
 	createVideoFeeds();
 
@@ -127,13 +140,13 @@ function setInfo(text) {
 
 	// show the text only for 3 seconds
 	infotime = new Date().getTime();
-	setTimeout( () => { if(new Date().getTime() - infotime > 2999) info.innerHTML = `Einstagram, University of Glasgow, <a href="https://github.com/jkcuk/Einstagram">https://github.com/jkcuk/Einstagram</a>` }, 3000);
+	setTimeout( () => { if(new Date().getTime() - infotime > 2999) info.innerHTML = `Relativistic Distortionist, University of Glasgow, <a href="https://github.com/jkcuk/relativisticDistortionist">https://github.com/jkcuk/relativisticDistortionist</a>` }, 3000);
 }
 
 function showInfo() {
 	if(new Date().getTime() - infotime < 1000) info.innerHTML = infotext;
-	else info.innerHTML =  `Einstagram, University of Glasgow`;
-	// else info.innerHTML =  `Einstagram, University of Glasgow, ${transformation} transformation, &beta; = (${betaX}, ${betaY}, ${betaZ}), screen horiz. FOV = ${fovS}&deg;, ${camera}`;
+	else info.innerHTML =  `Relativistic Distortionist, University of Glasgow`;
+	// else info.innerHTML =  `Relativistic Distortionist, University of Glasgow, ${transformation} transformation, &beta; = (${betaX}, ${betaY}, ${betaZ}), screen horiz. FOV = ${fovS}&deg;, ${camera}`;
 }
 
 function setWarning(warning) {
@@ -159,24 +172,23 @@ function animate() {
 
 	if(share) {
 		try {
-			const image = renderer.domElement.toDataURL('image/jpg');
+			const imageURI = renderer.domElement.toDataURL('image/png');
+			const blob = await (await fetch(imageURI)).blob();
+			const file = new File([blob], 'Einstagram.png', { type: blob.type });
 	
 			// Use the Web Share API to share the screenshot
 			if (navigator.share) {
 				navigator.share({
 					title: 'Einstagram image',
-					text: 'Check out this image rendered using Three.js!',
-					url: image
-					// files: [new File([image], 'Einstagram.jpg', {type: 'image/jpg'})]
+					text: 'Check out this image rendered using Einstagram!',
+					files: [file],
 				});
 			} else {
 				throw new Error('Web Share API is not supported in this browser.');
 			}
 		} catch (error) {
 			console.error('Error:', error);
-			// Handle errors
-		}
-		share = false;
+		}	
 	}
 }
 
@@ -375,7 +387,7 @@ function createGUI() {
 	}
 
 	gui.add(params, 'Toggle fullscreen');
-	// gui.add(params, 'Share image');
+	gui.add(params, 'Share image');
 	const folderBeta = gui.addFolder( '&beta;' );
 	folderBeta.add( params, '&beta;<sub>x</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaX = value; updateTransformationMatrix(); })
 	folderBeta.add( params, '&beta;<sub>y</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaY = value; updateTransformationMatrix(); })
@@ -536,8 +548,7 @@ function onScreenOrientationChange() {
 	createVideoFeeds();
 }
 
-/*
-async function share() {
+async function share2() {
 	try {
         const image = renderer.domElement.toDataURL('image/png');
 
@@ -545,9 +556,9 @@ async function share() {
         if (navigator.share) {
             await navigator.share({
                 title: 'Einstagram image',
-				// text: 'Check out this image rendered using Three.js!',
-                // url: image
-                files: [new File([image], 'Einstagram.png', {type: 'image/png'})]
+				text: 'Check out this image rendered using Three.js!',
+                url: image
+                // files: [new File([image], 'Einstagram.png', {type: 'image/png'})]
             });
         } else {
             throw new Error('Web Share API is not supported in this browser.');
@@ -557,4 +568,3 @@ async function share() {
         // Handle errors
     }
 }
-*/
