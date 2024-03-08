@@ -526,7 +526,7 @@ async function share() {
 				// Use the Web Share API to share the screenshot
 				if (navigator.share) {
 					navigator.share({
-						title: `Einstagram beta=(${betaX.toFixed(2)},${betaY.toFixed(2)},${betaZ.toFixed(2)})`,
+						title: `Einstagram beta=(${betaX.toFixed(2)} ${betaY.toFixed(2)} ${betaZ.toFixed(2)})`,
 						text: 'Check out this image rendered using Einstagram (https://jkcuk.github.io/Einstagram/)!',
 						files: [file],
 					});
