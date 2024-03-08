@@ -17,11 +17,11 @@
     	    canvas {
         	    display: block; /* Make the canvas a block element to fill its container */
         	}
-	        #clickableImage {
+	        #shareButton {
     	        position: absolute; /* Position the image absolutely */
         	    top: 20px;
           	  	left: 20px;
-            	width: 100px; /* Set the width of the image */
+            	width: 20px; /* Set the width of the image */
     	        cursor: pointer;
 	            z-index: 1; /* Ensure image is above the canvas */
   	      	}
@@ -39,7 +39,7 @@
 	<body>
 		<video id="videoU" style="display:none" autoplay playsinline></video>
 		<video id="videoE" style="display:none" autoplay playsinline></video>
-		<img id="clickableImage" src="share.png" alt="Share...">
+		<img id="shareButton" src="share.png" alt="Share...">
 		<script type="module" src="./main.js"></script>
 	</body>
 </html>

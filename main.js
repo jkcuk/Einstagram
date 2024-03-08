@@ -87,6 +87,9 @@ function init() {
 	// handle window resize
 	window.addEventListener("resize", onWindowResize, false);
 
+	// share button functionality
+	document.getElementById('shareButton').addEventListener('click', share);
+
 	// handle screen-orientation (landscape/portrait) change
 	screen.orientation.addEventListener("change", onScreenOrientationChange);
 
