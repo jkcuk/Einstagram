@@ -520,22 +520,23 @@ async function share() {
 
 			fetch(imageURI)
   			.then(response => response.blob())
- 			 .then(blob => {
+ 			.then(blob => {
 				const file = new File([blob], 'Einstagram.png', { type: blob.type });
 	
 				// Use the Web Share API to share the screenshot
 				if (navigator.share) {
 					navigator.share({
-						title: 'Einstagram image',
-						text: 'Check out this image rendered using Einstagram!',
+						title: `Einstagram beta=(${betaX.toFixed(2)},${betaY.toFixed(2)},${betaZ.toFixed(2)})`,
+						text: 'Check out this image rendered using Einstagram (https://jkcuk.github.io/Einstagram/)!',
 						files: [file],
 					});
 				} else {
-					throw new Error('Web Share API is not supported in this browser.');
+					setInfo('Sharing is not supported by this browser.');
 				}	
 			})
   			.catch(error => {
 				console.error('Error:', error);
+				setInfo(`Error: ${error}`);
 			});
 			/*
 			const blob = await (await fetch(imageURI)).blob();
