@@ -29,8 +29,6 @@ let cameraOutsideDistance = 4.0;
 let info = document.createElement('div');
 let infotime;	// the time the last info was posted
 
-let shareButton = document.createElement('')
-
 init();
 animate();
 
