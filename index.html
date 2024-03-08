@@ -29,6 +29,14 @@
     	        cursor: pointer;
 	            z-index: 1; /* Ensure image is above the canvas */
   	      	}
+			#fullscreenButton {
+    	        position: absolute; /* Position the image absolutely */
+        	    top: 20px;
+          	  	left: 50px;
+            	width: 20px; /* Set the width of the image */
+    	        cursor: pointer;
+	            z-index: 1; /* Ensure image is above the canvas */
+  	      	}
    		</style>
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<script type="importmap">
@@ -43,7 +51,8 @@
 	<body>
 		<video id="videoU" style="display:none" autoplay playsinline></video>
 		<video id="videoE" style="display:none" autoplay playsinline></video>
-		<img id="shareButton" src="share.png" alt="Share...">
+		<img id="shareButton" src="./shareButton.png" alt="Share...">
+		<img id="fullscreenButton" src="./fullscreenButton.png" alt="Toggle fullscreen">
 		<script type="module" src="./main.js"></script>
 	</body>
 </html>

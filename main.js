@@ -88,6 +88,9 @@ function init() {
 	// share button functionality
 	document.getElementById('shareButton').addEventListener('click', share);
 
+	// toggle fullscreen button functionality
+	document.getElementById('fullscreenButton').addEventListener('click', toggleFullscreen);
+
 	// handle screen-orientation (landscape/portrait) change
 	screen.orientation.addEventListener("change", onScreenOrientationChange);
 
@@ -331,19 +334,7 @@ function createGUI() {
 	gui.add(text, 'Transformation', { 'Lorentz': 'Lorentz', 'Galileo': 'Galileo' } ).onChange( (s) => { transformation = s; console.log(s); });
 
 	const params = {
-		'Toggle fullscreen': function() {
-			if (!document.fullscreenElement) {
-				document.documentElement.requestFullscreen().catch((err) => {
-				  alert(
-					`Error attempting to enable fullscreen mode: ${err.message} (${err.name})`,
-				  );
-				});
-				// allow screen orientation changes
-				// screen.orientation.unlock();
-			} else {
-				document.exitFullscreen();
-			}
-		},
+		'Toggle fullscreen': toggleFullscreen,
 		'Share image': share,
 		'&beta;<sub>x</sub>': betaX,
 		'&beta;<sub>y</sub>': betaY,
@@ -355,8 +346,10 @@ function createGUI() {
 		point_forward:function(){ pointForward(); }
 	}
 
-	gui.add(params, 'Toggle fullscreen');
-	gui.add(params, 'Share image');
+	// these two are now buttons
+	// gui.add(params, 'Toggle fullscreen');
+	// gui.add(params, 'Share image');
+	
 	const folderBeta = gui.addFolder( '&beta;' );
 	folderBeta.add( params, '&beta;<sub>x</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaX = value; updateTransformationMatrix(); })
 	folderBeta.add( params, '&beta;<sub>y</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaY = value; updateTransformationMatrix(); })
@@ -515,6 +508,20 @@ function onScreenOrientationChange() {
 
 	// ... and re-create new ones, hopefully of the appropriate size
 	createVideoFeeds();
+}
+
+async function toggleFullscreen() {
+	if (!document.fullscreenElement) {
+		document.documentElement.requestFullscreen().catch((err) => {
+			setInfo(
+				`Error attempting to enable fullscreen mode: ${err.message} (${err.name})`,
+			);
+		});
+		// allow screen orientation changes
+		// screen.orientation.unlock();
+	} else {
+		document.exitFullscreen();
+	}
 }
 
 async function share() {
