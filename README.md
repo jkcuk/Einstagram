@@ -20,7 +20,7 @@ _Lookalike sphere.  The image projected into the centre of the white hemisphere 
 _... the image projected into the centre of the red hemisphere is from the user-facing camera's video feed._
 
 ![Screenshot_20240306-161256](https://github.com/jkcuk/Einstagram/assets/44874423/8f58fd56-50b6-42c6-8533-f2926483e835)
-_From the centre of the lookalike sphere, and looking in the direction of the white hemisphere, the inside of the lookalike sphere looks like the undistorted video feed from the environment-facing camera.  The video feed from the user-facing camera can be seen in the opposite direction._
+_From the centre of the lookalike sphere, and looking in the direction of the white hemisphere, the inside of the lookalike sphere looks like the undistorted video feed from the environment-facing camera.  The video feed from the user-facing camera can be seen in the opposite direction (not shown)._
 
 _![Screenshot_20240306-161520](https://github.com/jkcuk/Einstagram/assets/44874423/fa8d7610-84bc-4be0-a441-d9aa926dac6d)
 Distorted lookalike sphere, seen from outside..._
