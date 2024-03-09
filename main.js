@@ -86,7 +86,7 @@ function init() {
 	window.addEventListener("resize", onWindowResize, false);
 
 	// share button functionality
-	document.getElementById('shareButton').addEventListener('click', share);
+	document.getElementById('clickNShareButton').addEventListener('click', share);
 
 	// toggle fullscreen button functionality
 	document.getElementById('fullscreenButton').addEventListener('click', toggleFullscreen);
@@ -349,7 +349,7 @@ function createGUI() {
 	// these two are now buttons
 	// gui.add(params, 'Toggle fullscreen');
 	// gui.add(params, 'Share image');
-	
+
 	const folderBeta = gui.addFolder( '&beta;' );
 	folderBeta.add( params, '&beta;<sub>x</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaX = value; updateTransformationMatrix(); })
 	folderBeta.add( params, '&beta;<sub>y</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaY = value; updateTransformationMatrix(); })
