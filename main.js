@@ -124,16 +124,19 @@ function init() {
 	addOrbitControls();	// add to outside camera
 
 	// remove the splash
-	for(let i=0; i<100; i++) {
-	setTimeout(() => {  
-		document.getElementById('splash').style.opacity = (100-i)/100; 
-	}, 1000+10*i);
+	let duration=4000;	// duration of transition, in ms
+	for(let ms=0; ms<duration; ms+=20) {
+		let opacity =  0.5+0.5*Math.cos(Math.PI*ms/duration);
+		setTimeout(() => {  
+			document.getElementById('splash').style.opacity = opacity; 
+			renderer.domElement.style.opacity = 1-opacity;
+		}, ms);
 	}	
 	setTimeout(() => {  
 		document.getElementById('splash').style.visibility = "hidden"; 
 		// the controls menu
 		createGUI();
-	}, 2100);
+	}, duration+100);
 	
 }
 
