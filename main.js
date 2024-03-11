@@ -123,9 +123,6 @@ function init() {
 	// add orbit controls to outside camera
 	addOrbitControls();	// add to outside camera
 
-	// the controls menu
-	createGUI();
-
 	// remove the splash
 	for(let i=0; i<100; i++) {
 	setTimeout(() => {  
@@ -134,7 +131,9 @@ function init() {
 	}	
 	setTimeout(() => {  
 		document.getElementById('splash').style.visibility = "hidden"; 
-	}, 2000);
+		// the controls menu
+		createGUI();
+	}, 2100);
 	
 }
 
