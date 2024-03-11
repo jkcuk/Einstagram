@@ -16,7 +16,7 @@
     	    canvas {
         	    display: block; /* Make the canvas a block element to fill its container */
         	}
-			#clickNShareButton {
+			#takePhotoButton {
 				position: absolute;
 			    bottom: 30px;
     			left: 50%;
@@ -27,7 +27,7 @@
   	      	}
 			#fullscreenButton {
     	        position: absolute; /* Position the image absolutely */
-        	    right: 10px;
+        	    right: 20px;
           	  	bottom: 20px;
             	width: 30px; /* Set the width of the image */
     	        cursor: pointer;
@@ -35,26 +35,29 @@
   	      	}
 			#backButton {
     	        position: absolute; /* Position the image absolutely */
-        	    left: 10px;
+        	    left: 20px;
           	  	top: 20px;
             	width: 30px; /* Set the width of the image */
     	        cursor: pointer;
+				visibility: hidden;	/* hide this button for the moment */
 	            z-index: 1; /* Ensure image is above the canvas */
   	      	}
 			#shareButton {
     	        position: absolute; /* Position the image absolutely */
-        	    left: 50px;
+        	    left: 80px;
           	  	top: 20px;
             	width: 30px; /* Set the width of the image */
     	        cursor: pointer;
+				visibility: hidden;	/* hide this button for the moment */
 	            z-index: 1; /* Ensure image is above the canvas */
   	      	}
 			#deleteButton {
     	        position: absolute; /* Position the image absolutely */
-        	    left: 90px;
+        	    left: 140px;
           	  	top: 20px;
             	width: 30px; /* Set the width of the image */
     	        cursor: pointer;
+				visibility: hidden;	/* hide this button for the moment */
 	            z-index: 1; /* Ensure image is above the canvas */
   	      	}
 			#storedPhotoThumbnail {
@@ -63,6 +66,7 @@
     			left: 10px;
     			width: 15%; /* Set the width of the image */
     	        cursor: pointer;
+				visibility: hidden;	/* hide this button for the moment */
 	            z-index: 1; /* Ensure image is above the canvas */
   	      	}
 			#storedPhoto {
@@ -71,7 +75,15 @@
     			left: 0px;
     			width: 100%;
 				/* height: 100%; */
-    	        cursor: pointer;
+				visibility: hidden;	/* hide this button for the moment */
+	            z-index: 0; /* Ensure image is above the canvas */
+  	      	}
+			#livePhoto {
+				position: absolute;
+			    top: 0px;
+    			left: 0px;
+    			width: 100%;
+				/* height: 100%; */
 	            z-index: 0; /* Ensure image is above the canvas */
   	      	}
    		</style>
@@ -92,9 +104,10 @@
 		<img id="shareButton" src="./shareButton.png" alt="Share Einstagram photo...">
 		<img id="deleteButton" src="./deleteButton.png" alt="Delete stored photo">
 		<img id="fullscreenButton" src="./fullscreenButton.png" alt="Toggle fullscreen">
-		<img id="clickNShareButton" src="./takePhotoButton.png" alt="Take photo">
-		<img id="storedPhoto" src="./clickNShareButton.png" alt="Stored photo">
-		<img id="storedPhotoThumbnail" border="2" src="./clickNShareButton.png" alt="Thumbnail of stored photo">
+		<img id="takePhotoButton" src="./takePhotoButton.png" alt="Take photo">
+		<img id="storedPhoto" alt="Stored photo">
+		<img id="storedPhotoThumbnail" border="2" alt="Thumbnail of stored photo">
+		<!-- <canvas id="livePhoto" alt="Live photo"> -->
 		<script type="module" src="./main.js"></script>
 	</body>
 </html>

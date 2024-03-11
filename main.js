@@ -78,6 +78,7 @@ function init() {
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	document.body.appendChild( renderer.domElement );
+	// document.getElementById('livePhoto').appendChild( renderer.domElement );
 
 	createVideoFeeds();
 
@@ -92,7 +93,7 @@ function init() {
 	window.addEventListener("resize", onWindowResize, false);
 
 	// share button functionality
-	document.getElementById('clickNShareButton').addEventListener('click', takePhoto);
+	document.getElementById('takePhotoButton').addEventListener('click', takePhoto);
 
 	// toggle fullscreen button functionality
 	document.getElementById('fullscreenButton').addEventListener('click', toggleFullscreen);
@@ -561,7 +562,7 @@ async function toggleFullscreen() {
 function showStoredPhoto() {
 	gui.hide();
 	renderer.domElement.style.visibility = "hidden";
-	document.getElementById('clickNShareButton').style.visibility = "hidden";
+	document.getElementById('takePhotoButton').style.visibility = "hidden";
 	document.getElementById('storedPhotoThumbnail').style.visibility = "hidden";
 	document.getElementById('backButton').style.visibility = "visible";
 	document.getElementById('shareButton').style.visibility = "visible";
@@ -575,7 +576,7 @@ function showStoredPhoto() {
 function showLivePhoto() {
 	gui.show();
 	renderer.domElement.style.visibility = "visible";
-	document.getElementById('clickNShareButton').style.visibility = "visible";
+	document.getElementById('takePhotoButton').style.visibility = "visible";
 	if(storedPhoto) document.getElementById('storedPhotoThumbnail').style.visibility = "visible";
 	document.getElementById('backButton').style.visibility = "hidden";
 	document.getElementById('shareButton').style.visibility = "hidden";
@@ -603,7 +604,7 @@ function takePhoto() {
 		document.getElementById('storedPhotoThumbnail').src=storedPhoto;
 		document.getElementById('storedPhotoThumbnail').style.visibility = "visible";
 	
-		setInfo('(New) photo taken; click thumbnail to view');
+		setInfo('Photo taken; click thumbnail to view and share');
 	} catch (error) {
 		console.error('Error:', error);
 	}	
