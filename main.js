@@ -528,6 +528,28 @@ async function share() {
 		try {
 			const imageURI = renderer.domElement.toDataURL('image/png');
 
+			// instantiate a loader
+			const loader = new THREE.ImageLoader();
+
+			// load a image resource
+			loader.load(
+				// resource URL
+				imageURI,	// 'textures/skyboxsun25degtest.png',
+				// onLoad callback
+				function ( image ) {
+					// use the image, e.g. draw part of it on a canvas
+					const canvas = document.createElement( 'canvas' );
+					const context = canvas.getContext( '2d' );
+					context.drawImage( image, 100, 100 );
+				},
+				// onProgress callback currently not supported
+				undefined,
+				// onError callback
+				function () {
+					console.error( 'An error happened.' );
+				}
+			);
+
 			fetch(imageURI)
   			.then(response => response.blob())
  			.then(blob => {
@@ -536,7 +558,7 @@ async function share() {
 				// Use the Web Share API to share the screenshot
 				if (navigator.share) {
 					navigator.share({
-						// title: `Einstagram beta=(${betaX.toFixed(2)},${betaY.toFixed(2)},${betaZ.toFixed(2)})`,
+						title: `Einstagram beta=(${betaX.toFixed(2)},${betaY.toFixed(2)},${betaZ.toFixed(2)})`,
 						// text: 'Check out this image rendered using Einstagram (https://jkcuk.github.io/Einstagram/)!',
 						files: [file],
 					});
