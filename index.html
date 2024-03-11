@@ -3,21 +3,16 @@
 	<head>
 		<meta charset="utf-8">
 		<title>Einstagram</title>
-	<!--
-		<style>
-			body { margin: 0; }
-			a {
-				color: #fff;
-				text-decoration: none;
-			}
-		</style>
-	-->
 		<style>
     	    body {
         	    margin: 0;
             	overflow: hidden;
             	position: relative; /* Ensure canvas and image are positioned relative to the body */
 	        }
+			a {
+				color: #fff;
+				text-decoration: none;
+			}
     	    canvas {
         	    display: block; /* Make the canvas a block element to fill its container */
         	}
@@ -26,17 +21,58 @@
 			    bottom: 30px;
     			left: 50%;
     			transform: translateX(-50%); /* see https://stackoverflow.com/questions/19461521/how-to-center-an-element-horizontally-and-vertically */
-				width: 100px; /* Set the width of the image */
+				width: 200px; /* Set the width of the image */
     	        cursor: pointer;
 	            z-index: 1; /* Ensure image is above the canvas */
   	      	}
 			#fullscreenButton {
     	        position: absolute; /* Position the image absolutely */
-        	    left: 10px;
-          	  	top: 10px;
-            	width: 20px; /* Set the width of the image */
+        	    right: 10px;
+          	  	bottom: 20px;
+            	width: 30px; /* Set the width of the image */
     	        cursor: pointer;
 	            z-index: 1; /* Ensure image is above the canvas */
+  	      	}
+			#backButton {
+    	        position: absolute; /* Position the image absolutely */
+        	    left: 10px;
+          	  	top: 20px;
+            	width: 30px; /* Set the width of the image */
+    	        cursor: pointer;
+	            z-index: 1; /* Ensure image is above the canvas */
+  	      	}
+			#shareButton {
+    	        position: absolute; /* Position the image absolutely */
+        	    left: 50px;
+          	  	top: 20px;
+            	width: 30px; /* Set the width of the image */
+    	        cursor: pointer;
+	            z-index: 1; /* Ensure image is above the canvas */
+  	      	}
+			#deleteButton {
+    	        position: absolute; /* Position the image absolutely */
+        	    left: 90px;
+          	  	top: 20px;
+            	width: 30px; /* Set the width of the image */
+    	        cursor: pointer;
+	            z-index: 1; /* Ensure image is above the canvas */
+  	      	}
+			#storedPhotoThumbnail {
+				position: absolute;
+			    bottom: 20px;
+    			left: 10px;
+    			width: 15%; /* Set the width of the image */
+    	        cursor: pointer;
+	            z-index: 1; /* Ensure image is above the canvas */
+  	      	}
+			#storedPhoto {
+				position: absolute;
+			    top: 0px;
+    			left: 0px;
+    			width: 100%;
+				/* height: 100%; */
+    	        cursor: pointer;
+	            z-index: 0; /* Ensure image is above the canvas */
   	      	}
    		</style>
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
@@ -52,8 +88,13 @@
 	<body>
 		<video id="videoU" style="display:none" autoplay playsinline></video>
 		<video id="videoE" style="display:none" autoplay playsinline></video>
+		<img id="backButton" src="./backButton.png" alt="Back to live camera image">
+		<img id="shareButton" src="./shareButton.png" alt="Share Einstagram photo...">
+		<img id="deleteButton" src="./deleteButton.png" alt="Delete stored photo">
 		<img id="fullscreenButton" src="./fullscreenButton.png" alt="Toggle fullscreen">
-		<img id="clickNShareButton" src="./clickNShareButton.png" alt="Take photo and share...">
+		<img id="clickNShareButton" src="./takePhotoButton.png" alt="Take photo">
+		<img id="storedPhoto" src="./clickNShareButton.png" alt="Stored photo">
+		<img id="storedPhotoThumbnail" border="2" src="./clickNShareButton.png" alt="Thumbnail of stored photo">
 		<script type="module" src="./main.js"></script>
 	</body>
 </html>

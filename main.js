@@ -29,6 +29,12 @@ let cameraOutsideDistance = 4.0;
 let info = document.createElement('div');
 let infotime;	// the time the last info was posted
 
+let gui;
+
+let showingStoredPhoto;
+
+let storedPhoto;
+
 init();
 animate();
 
@@ -86,10 +92,29 @@ function init() {
 	window.addEventListener("resize", onWindowResize, false);
 
 	// share button functionality
-	document.getElementById('clickNShareButton').addEventListener('click', share);
+	document.getElementById('clickNShareButton').addEventListener('click', takePhoto);
 
 	// toggle fullscreen button functionality
 	document.getElementById('fullscreenButton').addEventListener('click', toggleFullscreen);
+
+	// back button functionality
+	document.getElementById('backButton').addEventListener('click', showLivePhoto);
+	document.getElementById('backButton').style.visibility = "hidden";
+
+	// share button
+	document.getElementById('shareButton').addEventListener('click', share);
+	document.getElementById('shareButton').style.visibility = "hidden";
+
+	// delete button
+	document.getElementById('deleteButton').addEventListener('click', deleteStoredPhoto);
+	document.getElementById('deleteButton').style.visibility = "hidden";
+
+	// hide the thumbnail for the moment
+	document.getElementById('storedPhotoThumbnail').addEventListener('click', showStoredPhoto);
+	document.getElementById('storedPhotoThumbnail').style.visibility = "hidden";
+	document.getElementById('storedPhoto').addEventListener('click', showLivePhoto);
+	document.getElementById('storedPhoto').style.visibility = "hidden";
+	showingStoredPhoto = false;
 
 	// handle screen-orientation (landscape/portrait) change
 	screen.orientation.addEventListener("change", onScreenOrientationChange);
@@ -152,16 +177,24 @@ function animate() {
 	// calculate the matrix that describes the correct distortion of the lookalike sphere
 	updateTransformationMatrix();
 	
-	// set the camera, either to the inside camera or the outside camera
-	switch(camera)
-	{
-		case 'Outside lookalike sphere':
-			renderer.render( scene, cameraOutside );
-			break;
-		case 'Inside lookalike sphere':
-		default:
-			renderer.render( scene, cameraInside );
+	if(!showingStoredPhoto) {
+		// set the camera, either to the inside camera or the outside camera
+		switch(camera)
+		{
+			case 'Outside lookalike sphere':
+				renderer.render( scene, cameraOutside );
+				break;
+			case 'Inside lookalike sphere':
+			default:
+				renderer.render( scene, cameraInside );
+		}
 	}
+
+	// draw here the saved photo
+	// if(photo) {
+	// 	const context = renderer.domElement.getContext( '2d' );
+	// 	context.drawImage( photo, 100, 100 );
+	// }
 }
 
 function createVideoFeeds() {
@@ -323,7 +356,8 @@ function addOrbitControls() {
 
 // see https://github.com/mrdoob/three.js/blob/master/examples/webgl_animation_skinning_additive_blending.html
 function createGUI() {
-	const gui = new GUI();
+	// const 
+	gui = new GUI();
 
 	var text =
 	{
@@ -524,33 +558,60 @@ async function toggleFullscreen() {
 	}
 }
 
+function showStoredPhoto() {
+	gui.hide();
+	renderer.domElement.style.visibility = "hidden";
+	document.getElementById('clickNShareButton').style.visibility = "hidden";
+	document.getElementById('storedPhotoThumbnail').style.visibility = "hidden";
+	document.getElementById('backButton').style.visibility = "visible";
+	document.getElementById('shareButton').style.visibility = "visible";
+	document.getElementById('deleteButton').style.visibility = "visible";
+	document.getElementById('storedPhoto').style.visibility = "visible";
+	showingStoredPhoto = true;
+
+	setInfo('Showing stored photo');
+}
+
+function showLivePhoto() {
+	gui.show();
+	renderer.domElement.style.visibility = "visible";
+	document.getElementById('clickNShareButton').style.visibility = "visible";
+	if(storedPhoto) document.getElementById('storedPhotoThumbnail').style.visibility = "visible";
+	document.getElementById('backButton').style.visibility = "hidden";
+	document.getElementById('shareButton').style.visibility = "hidden";
+	document.getElementById('deleteButton').style.visibility = "hidden";
+	document.getElementById('storedPhoto').style.visibility = "hidden";
+	showingStoredPhoto = false;
+
+	setInfo('Showing live image');
+}
+
+function deleteStoredPhoto() {
+	storedPhoto = null;
+
+	showLivePhoto();
+
+	setInfo('Stored photo deleted; showing live image');
+}
+
+function takePhoto() {
+	try {
+		storedPhoto = renderer.domElement.toDataURL('image/png');
+
+		// 
+		document.getElementById('storedPhoto').src=storedPhoto;
+		document.getElementById('storedPhotoThumbnail').src=storedPhoto;
+		document.getElementById('storedPhotoThumbnail').style.visibility = "visible";
+	
+		setInfo('(New) photo taken; click thumbnail to view');
+	} catch (error) {
+		console.error('Error:', error);
+	}	
+}
+
 async function share() {
 		try {
-			const imageURI = renderer.domElement.toDataURL('image/png');
-
-			// instantiate a loader
-			const loader = new THREE.ImageLoader();
-
-			// load a image resource
-			loader.load(
-				// resource URL
-				imageURI,	// 'textures/skyboxsun25degtest.png',
-				// onLoad callback
-				function ( image ) {
-					// use the image, e.g. draw part of it on a canvas
-					const canvas = document.createElement( 'canvas' );
-					const context = canvas.getContext( '2d' );
-					context.drawImage( image, 100, 100 );
-				},
-				// onProgress callback currently not supported
-				undefined,
-				// onError callback
-				function () {
-					console.error( 'An error happened.' );
-				}
-			);
-
-			fetch(imageURI)
+			fetch(storedPhoto)
   			.then(response => response.blob())
  			.then(blob => {
 				const file = new File([blob], `Einstagram beta=(${betaX.toFixed(2)},${betaY.toFixed(2)},${betaZ.toFixed(2)}).png`, { type: blob.type });
