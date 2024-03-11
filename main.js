@@ -12,7 +12,7 @@ let controls, shaderMaterial, geometry, lookalikeSphere, transformationMatrix;
 // Nokia HR20, according to https://www.camerafv5.com/devices/manufacturers/hmd_global/nokia_xr20_ttg_0/
 let fovU = 67.3;
 let fovE = 68.3;
-let fovS = 90;
+let fovS = 68;
 
 // the Cartesian components of the boost, in units of c
 // ()
@@ -125,6 +125,17 @@ function init() {
 
 	// the controls menu
 	createGUI();
+
+	// remove the splash
+	for(let i=0; i<100; i++) {
+	setTimeout(() => {  
+		document.getElementById('splash').style.opacity = (100-i)/100; 
+	}, 1000+10*i);
+	}	
+	setTimeout(() => {  
+		document.getElementById('splash').style.visibility = "hidden"; 
+	}, 2000);
+	
 }
 
 // function handleOrientation(event) {
