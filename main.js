@@ -161,7 +161,6 @@ function init() {
 			renderer.domElement.style.opacity = 1-opacity;
 		}, ms);
 	}
-	
 	setTimeout(() => {  
 		document.getElementById('splash').style.visibility = "hidden"; 
 		// the controls menu
