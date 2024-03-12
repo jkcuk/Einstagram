@@ -1,3 +1,18 @@
+// This code is based on three.js, which comes with the following license:
+//
+// The MIT License
+//
+// Copyright © 2010-2024 three.js authors
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 import * as THREE from 'three';
 
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
@@ -34,6 +49,9 @@ let gui;
 let showingStoredPhoto;
 
 let storedPhoto;
+
+// from https://github.com/4nt0nio/jpegcam
+const click = new Audio('./shutter.mp3');
 
 init();
 animate();
@@ -610,6 +628,8 @@ function deleteStoredPhoto() {
 
 function takePhoto() {
 	try {
+		click.play();
+
 		storedPhoto = renderer.domElement.toDataURL('image/png');
 
 		// 
