@@ -18,10 +18,10 @@ import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-let camera = 'Inside lookalike sphere', transformation = 'Lorentz', scene;
+let cameraPosition = 'Inside lookalike sphere', transformation = 'Lorentz', scene;
 let aspectRatioU = 4.0/3.0, aspectRatioE = 4.0/3.0;
 let renderer, videoU, videoE;
-let cameraInside, cameraOutside;
+let camera;	// , cameraInside, cameraOutside;
 let controls, shaderMaterial, geometry, lookalikeSphere, transformationMatrix;
 
 // Nokia HR20, according to https://www.camerafv5.com/devices/manufacturers/hmd_global/nokia_xr20_ttg_0/
@@ -40,6 +40,11 @@ let betaX = 0, betaY = 0, betaZ = 0;
 // let boostAlpha = 0, boostBeta = 90, boostGamma = 0;
 
 let cameraOutsideDistance = 4.0;
+let cameraAnimationStartDistance;
+let cameraAnimationTargetDistance;
+let cameraAnimationStartTime;
+let cameraAnimationTargetTime;
+let cameraAnimation = false;
 
 let info = document.createElement('div');
 let infotime;	// the time the last info was posted
@@ -86,9 +91,11 @@ function init() {
 	scene = new THREE.Scene();
 	scene.background = new THREE.Color( 'skyblue' );
 	let windowAspectRatio = window.innerWidth / window.innerHeight;
-	cameraInside = new THREE.PerspectiveCamera( fovS, windowAspectRatio, 0.00001, 2.1 );
-	cameraOutside = new THREE.PerspectiveCamera( fovS, windowAspectRatio, 0.001, 10 );
-	cameraOutside.position.z = cameraOutsideDistance;
+	camera = new THREE.PerspectiveCamera( fovS, windowAspectRatio, 0.00001, 10 );
+	camera.position.z = 0.01;
+	// cameraInside = new THREE.PerspectiveCamera( fovS, windowAspectRatio, 0.00001, 2.1 );
+	// cameraOutside = new THREE.PerspectiveCamera( fovS, windowAspectRatio, 0.001, 10 );
+	// cameraOutside.position.z = cameraOutsideDistance;
 	screenChanged();
 	
 	renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
@@ -115,6 +122,9 @@ function init() {
 
 	// toggle fullscreen button functionality
 	document.getElementById('fullscreenButton').addEventListener('click', toggleFullscreen);
+
+	// changePositionButton
+	// document.getElementById('changePositionButton').addEventListener('click', changePosition);
 
 	// back button functionality
 	document.getElementById('backButton').addEventListener('click', showLivePhoto);
@@ -143,13 +153,15 @@ function init() {
 
 	// remove the splash
 	let duration=4000;	// duration of transition, in ms
+	
 	for(let ms=0; ms<duration; ms+=20) {
 		let opacity =  0.5+0.5*Math.cos(Math.PI*ms/duration);
 		setTimeout(() => {  
 			document.getElementById('splash').style.opacity = opacity; 
 			renderer.domElement.style.opacity = 1-opacity;
 		}, ms);
-	}	
+	}
+	
 	setTimeout(() => {  
 		document.getElementById('splash').style.visibility = "hidden"; 
 		// the controls menu
@@ -181,6 +193,7 @@ function createInfo() {
 	setInfo("Welcome!");
 	info.style.bottom = 0 + 'px';
 	info.style.left = 0 + 'px';
+	info.style.zIndex = 1;
 	document.body.appendChild(info);	
 }
 
@@ -196,7 +209,7 @@ function setInfo(text) {
 function showInfo() {
 	if(new Date().getTime() - infotime < 1000) info.innerHTML = infotext;
 	else info.innerHTML =  `Einstagram, University of Glasgow`;
-	// else info.innerHTML =  `Einstagram, University of Glasgow, ${transformation} transformation, &beta; = (${betaX}, ${betaY}, ${betaZ}), screen horiz. FOV = ${fovS}&deg;, ${camera}`;
+	// else info.innerHTML =  `Einstagram, University of Glasgow, ${transformation} transformation, &beta; = (${betaX}, ${betaY}, ${betaZ}), screen horiz. FOV = ${fovS}&deg;, ${cameraPosition}`;
 }
 
 function setWarning(warning) {
@@ -210,8 +223,35 @@ function animate() {
 	updateTransformationMatrix();
 	
 	if(!showingStoredPhoto) {
+		if(cameraAnimation) {
+			let t = Date.now();
+			let r;
+			if(t > cameraAnimationTargetTime) {
+				// animation is finished
+				r = cameraAnimationTargetDistance;
+				cameraAnimation = false;
+			} else {
+				// we are mid-animation
+				// f ranges from 0 (at the start of the animation) to 1 (at the end)
+				let f = (t-cameraAnimationStartTime)/(cameraAnimationTargetTime-cameraAnimationStartTime);
+				// c also ranges from 0 to 1, but "eases" in and out
+				let c = 0.5-0.5*Math.cos(Math.PI*f);
+				r = cameraAnimationStartDistance + 
+					c*(cameraAnimationTargetDistance - cameraAnimationStartDistance);
+			}
+			camera.position.setLength(r);
+			camera.updateProjectionMatrix();
+
+			// allowing control of the distance can result in the view being no longer 
+			// centred on the origin, so don't allow it
+			controls.minDistance = r;
+			controls.maxDistance = r;
+		}
+
+		renderer.render( scene,  camera );
+		/*
 		// set the camera, either to the inside camera or the outside camera
-		switch(camera)
+		switch(cameraPosition)
 		{
 			case 'Outside lookalike sphere':
 				renderer.render( scene, cameraOutside );
@@ -220,6 +260,7 @@ function animate() {
 			default:
 				renderer.render( scene, cameraInside );
 		}
+		*/
 	}
 
 	// draw here the saved photo
@@ -367,7 +408,8 @@ function createLookalikeSphere() {
 function addOrbitControls() {
 	// controls
 
-	controls = new OrbitControls( cameraOutside, renderer.domElement );
+	controls = new OrbitControls( camera, renderer.domElement );
+	// controls = new OrbitControls( cameraOutside, renderer.domElement );
 	controls.listenToKeyEvents( window ); // optional
 
 	//controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
@@ -380,8 +422,8 @@ function addOrbitControls() {
 
 	// allowing control of the distance can result in the view being no longer 
 	// centred on the origin, so don't allow it
-	controls.minDistance = cameraOutsideDistance;
-	controls.maxDistance = cameraOutsideDistance;
+	// controls.minDistance = cameraOutsideDistance;
+	// controls.maxDistance = cameraOutsideDistance;
 
 	controls.maxPolarAngle = Math.PI;
 }
@@ -391,15 +433,9 @@ function createGUI() {
 	// const 
 	gui = new GUI();
 
-	var text =
-	{
-    	'Camera position': camera,
-		'Transformation': transformation
-	}
-	gui.add(text, 'Camera position', { 'Inside lookalike sphere': 'Inside lookalike sphere', 'Outside lookalike sphere': 'Outside lookalike sphere' } ).onChange( changeCamera );
-	gui.add(text, 'Transformation', { 'Lorentz': 'Lorentz', 'Galileo': 'Galileo' } ).onChange( (s) => { transformation = s; console.log(s); });
-
 	const params = {
+		'Camera position': cameraPosition,
+		'Transformation': transformation,
 		'Toggle fullscreen': toggleFullscreen,
 		'Share image': share,
 		'&beta;<sub>x</sub>': betaX,
@@ -408,10 +444,13 @@ function createGUI() {
 		'user-facing camera': fovU,
 		'env.-facing camera': fovE,
 		'screen': fovS,
-		'<i>z</i> coordinate': cameraOutside.position.z,
-		point_forward:function(){ pointForward(); }
+		// '<i>z</i> coordinate': cameraOutside.position.z,
+		'Point forward': pointForward 
 	}
 
+	gui.add(params, 'Camera position', { 'Inside lookalike sphere': 'Inside lookalike sphere', 'Outside lookalike sphere': 'Outside lookalike sphere' } ).onChange( changeCamera );
+	gui.add(params, 'Point forward');
+	
 	// these two are now buttons
 	// gui.add(params, 'Toggle fullscreen');
 	// gui.add(params, 'Share image');
@@ -420,6 +459,8 @@ function createGUI() {
 	folderBeta.add( params, '&beta;<sub>x</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaX = value; updateTransformationMatrix(); })
 	folderBeta.add( params, '&beta;<sub>y</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaY = value; updateTransformationMatrix(); })
 	folderBeta.add( params, '&beta;<sub>z</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaZ = value; updateTransformationMatrix(); })
+
+	gui.add(params, 'Transformation', { 'Lorentz': 'Lorentz', 'Galileo': 'Galileo' } ).onChange( (s) => { transformation = s; console.log(s); });
 
 	const folderFOV = gui.addFolder( 'FOV' );
 	folderFOV.add( params, 'user-facing camera', 10, 170, 1).onChange( (fov) => { fovU = fov; updateUniforms(); });   
@@ -456,8 +497,9 @@ function screenChanged() {
 
 	// if the screen orientation changes, width and height swap places, so the aspect ratio changes
 	let windowAspectRatio = window.innerWidth / window.innerHeight;
-	cameraInside.aspect = windowAspectRatio;
-	cameraOutside.aspect = windowAspectRatio;
+	camera.aspect = windowAspectRatio;
+	//cameraInside.aspect = windowAspectRatio;
+	//cameraOutside.aspect = windowAspectRatio;
 
 	// fovS is the screen's horizontal or vertical FOV, whichever is greater;
 	// re-calculate the camera FOV, which is the *vertical* fov
@@ -470,12 +512,14 @@ function screenChanged() {
 		verticalFOV = fovS;
 		// alert(`vertical FOV ${verticalFOV}`);
 	}
-	cameraOutside.fov = verticalFOV;
-	cameraInside.fov = verticalFOV;
+	camera.fov = verticalFOV;
+	//cameraOutside.fov = verticalFOV;
+	//cameraInside.fov = verticalFOV;
 
 	// make sure the camera changes take effect
-	cameraOutside.updateProjectionMatrix();
-	cameraInside.updateProjectionMatrix();
+	camera.updateProjectionMatrix();
+	//cameraOutside.updateProjectionMatrix();
+	//cameraInside.updateProjectionMatrix();
 }
 
 function onWindowResize() {
@@ -483,10 +527,35 @@ function onWindowResize() {
 	setInfo(`window size ${window.innerWidth} &times; ${window.innerHeight}`);	// debug
 }
 
-function changeCamera(newCamera) {
-	camera = newCamera;
-	
-	controls.enabled = (camera == 'Outside lookalike sphere');
+// function changePosition() {
+function changeCamera(newCameraPosition) {
+	// change the camera position
+	cameraPosition = newCameraPosition;
+	// switch(cameraPosition) {
+	// 	case 'Outside lookalike sphere':
+	// 		cameraPosition = 'Inside lookalike sphere';
+	// 		cameraAnimationTargetDistance = 0.000001;
+	// 		break;
+	// 	case 'Inside lookalike sphere':
+	// 	default:
+	// 		cameraPosition = 'Outside lookalike sphere';
+	// 		cameraAnimationTargetDistance = cameraOutsideDistance;
+	// }
+	switch(cameraPosition) {
+		case 'Outside lookalike sphere':
+			cameraAnimationTargetDistance = cameraOutsideDistance;
+			break;
+		case 'Inside lookalike sphere':
+		default:
+			cameraAnimationTargetDistance = 0.000001;
+	}
+	cameraAnimationStartDistance = camera.position.length();
+	cameraAnimationStartTime = Date.now();
+	cameraAnimationTargetTime = cameraAnimationStartTime + 2000;
+	setInfo('Moving camera to position '+cameraPosition);
+
+	cameraAnimation = true;
+	// controls.enabled = (cameraPosition == 'Outside lookalike sphere');
 }
 
 function updateUniforms() {
@@ -576,6 +645,15 @@ function onScreenOrientationChange() {
 	createVideoFeeds();
 }
 
+function  pointForward() {
+	let r = camera.position.length();
+	camera.position.x = 0;
+	camera.position.y = 0;
+	camera.position.z = r;
+	controls.update();
+	// camera.updateProjectionMatrix();
+}
+
 async function toggleFullscreen() {
 	if (!document.fullscreenElement) {
 		document.documentElement.requestFullscreen().catch((err) => {
@@ -594,6 +672,7 @@ function showStoredPhoto() {
 	gui.hide();
 	renderer.domElement.style.visibility = "hidden";
 	document.getElementById('takePhotoButton').style.visibility = "hidden";
+	// document.getElementById('changePositionButton').style.visibility = "hidden";
 	document.getElementById('storedPhotoThumbnail').style.visibility = "hidden";
 	document.getElementById('backButton').style.visibility = "visible";
 	document.getElementById('shareButton').style.visibility = "visible";
@@ -608,6 +687,7 @@ function showLivePhoto() {
 	gui.show();
 	renderer.domElement.style.visibility = "visible";
 	document.getElementById('takePhotoButton').style.visibility = "visible";
+	// document.getElementById('changePositionButton').style.visibility = "visible";
 	if(storedPhoto) document.getElementById('storedPhotoThumbnail').style.visibility = "visible";
 	document.getElementById('backButton').style.visibility = "hidden";
 	document.getElementById('shareButton').style.visibility = "hidden";
@@ -644,63 +724,28 @@ function takePhoto() {
 }
 
 async function share() {
-		try {
-			fetch(storedPhoto)
-  			.then(response => response.blob())
- 			.then(blob => {
-				const file = new File([blob], `Einstagram beta=(${betaX.toFixed(2)},${betaY.toFixed(2)},${betaZ.toFixed(2)}).png`, { type: blob.type });
-	
-				// Use the Web Share API to share the screenshot
-				if (navigator.share) {
-					navigator.share({
-						title: `Einstagram beta=(${betaX.toFixed(2)},${betaY.toFixed(2)},${betaZ.toFixed(2)})`,
-						// text: 'Check out this image rendered using Einstagram (https://jkcuk.github.io/Einstagram/)!',
-						files: [file],
-					});
-				} else {
-					setInfo('Sharing is not supported by this browser.');
-				}	
-			})
-  			.catch(error => {
-				console.error('Error:', error);
-				setInfo(`Error: ${error}`);
-			});
-			/*
-			const blob = await (await fetch(imageURI)).blob();
-			const file = new File([blob], 'Einstagram.png', { type: blob.type });
-	
+	try {
+		fetch(storedPhoto)
+		.then(response => response.blob())
+		.then(blob => {
+			const file = new File([blob], `Einstagram beta=(${betaX.toFixed(2)},${betaY.toFixed(2)},${betaZ.toFixed(2)}).png`, { type: blob.type });
+
 			// Use the Web Share API to share the screenshot
 			if (navigator.share) {
 				navigator.share({
-					title: 'Einstagram image',
-					text: 'Check out this image rendered using Einstagram!',
+					title: `Einstagram beta=(${betaX.toFixed(2)},${betaY.toFixed(2)},${betaZ.toFixed(2)})`,
+					// text: 'Check out this image rendered using Einstagram (https://jkcuk.github.io/Einstagram/)!',
 					files: [file],
 				});
 			} else {
-				throw new Error('Web Share API is not supported in this browser.');
-			}
-			*/
-		} catch (error) {
+				setInfo('Sharing is not supported by this browser.');
+			}	
+		})
+		.catch(error => {
 			console.error('Error:', error);
-		}	
-	/*
-	try {
-        const image = renderer.domElement.toDataURL('image/png');
-
-        // Use the Web Share API to share the screenshot
-        if (navigator.share) {
-            await navigator.share({
-                title: 'Einstagram image',
-				text: 'Check out this image rendered using Three.js!',
-                url: image
-                // files: [new File([image], 'Einstagram.png', {type: 'image/png'})]
-            });
-        } else {
-            throw new Error('Web Share API is not supported in this browser.');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        // Handle errors
-    }
-	*/
+			setInfo(`Error: ${error}`);
+		});
+	} catch (error) {
+		console.error('Error:', error);
+	}
 }

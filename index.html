@@ -33,6 +33,15 @@
     	        cursor: pointer;
 	            z-index: 1; /* Ensure image is above the canvas */
   	      	}
+			#changePositionButton {
+    	        position: absolute; /* Position the image absolutely */
+        	    left: 20px;
+          	  	top: 20px;
+            	width: 40px; /* Set the width of the image */
+    	        cursor: pointer;
+				visibility: hidden;	/* hide this button for the moment */
+	            z-index: 1; /* Ensure image is above the canvas */
+  	      	}
 			#backButton {
     	        position: absolute; /* Position the image absolutely */
         	    left: 20px;
@@ -44,7 +53,7 @@
   	      	}
 			#shareButton {
     	        position: absolute; /* Position the image absolutely */
-        	    left: 60px;
+        	    left: 80px;
           	  	top: 20px;
             	width: 20px; /* Set the width of the image */
     	        cursor: pointer;
@@ -53,7 +62,7 @@
   	      	}
 			#deleteButton {
     	        position: absolute; /* Position the image absolutely */
-        	    left: 100px;
+        	    left: 140px;
           	  	top: 20px;
             	width: 20px; /* Set the width of the image */
     	        cursor: pointer;
@@ -113,6 +122,7 @@
 		<video id="videoE" style="display:none" autoplay playsinline></video>
 		<img id="backButton" src="./backButton.png" alt="Back to live camera image">
 		<img id="shareButton" src="./shareButton.png" alt="Share Einstagram photo...">
+		<img id="changePositionButton" src="./changePositionButton.png" alt="Toggle between inside and outside of distorted lookalike sphere">
 		<img id="deleteButton" src="./deleteButton.png" alt="Delete stored photo">
 		<img id="fullscreenButton" src="./fullscreenButton.png" alt="Toggle fullscreen">
 		<img id="takePhotoButton" src="./takePhotoButton.png" alt="Take photo">
