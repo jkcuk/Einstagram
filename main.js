@@ -152,7 +152,7 @@ function init() {
 	addOrbitControls();	// add to outside camera
 
 	// remove the splash
-	let duration=4000;	// duration of transition, in ms
+	let duration=2000;	// duration of transition, in ms
 	
 	for(let ms=0; ms<duration; ms+=20) {
 		let opacity =  0.5+0.5*Math.cos(Math.PI*ms/duration);
@@ -450,19 +450,14 @@ function createGUI() {
 
 	gui.add(params, 'Camera position', { 'Inside lookalike sphere': 'Inside lookalike sphere', 'Outside lookalike sphere': 'Outside lookalike sphere' } ).onChange( changeCamera );
 	gui.add(params, 'Point forward');
-	
-	// these two are now buttons
-	// gui.add(params, 'Toggle fullscreen');
-	// gui.add(params, 'Share image');
+	gui.add(params, 'Transformation', { 'Lorentz': 'Lorentz', 'Galileo': 'Galileo' } ).onChange( (s) => { transformation = s; console.log(s); });
 
 	const folderBeta = gui.addFolder( '&beta;' );
 	folderBeta.add( params, '&beta;<sub>x</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaX = value; updateTransformationMatrix(); })
 	folderBeta.add( params, '&beta;<sub>y</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaY = value; updateTransformationMatrix(); })
 	folderBeta.add( params, '&beta;<sub>z</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaZ = value; updateTransformationMatrix(); })
 
-	gui.add(params, 'Transformation', { 'Lorentz': 'Lorentz', 'Galileo': 'Galileo' } ).onChange( (s) => { transformation = s; console.log(s); });
-
-	const folderFOV = gui.addFolder( 'FOV' );
+	const folderFOV = gui.addFolder( 'FOVs' );
 	folderFOV.add( params, 'user-facing camera', 10, 170, 1).onChange( (fov) => { fovU = fov; updateUniforms(); });   
 	folderFOV.add( params, 'env.-facing camera', 10, 170, 1).onChange( (fov) => { fovE = fov; updateUniforms(); });   
 	folderFOV.add( params, 'screen', 10, 170, 1).onChange( setScreenFOV );   
