@@ -155,23 +155,10 @@ function init() {
 	// add orbit controls to outside camera
 	addOrbitControls();	// add to outside camera
 
-	// remove the splash
-	let duration=2000;	// duration of transition, in ms
-	
-	for(let ms=0; ms<duration; ms+=20) {
-		let opacity =  0.5+0.5*Math.cos(Math.PI*ms/duration);
-		setTimeout(() => {  
-			document.getElementById('splash').style.opacity = opacity; 
-			renderer.domElement.style.opacity = 1-opacity;
-		}, ms);
-	}
-	
-	setTimeout(() => {  
-		document.getElementById('splash').style.visibility = "hidden"; 
-		// the controls menu
-		createGUI();
-	}, duration+100);
-	
+	// the controls menu
+	createGUI();
+
+	removeSplash();
 }
 
 
@@ -476,28 +463,51 @@ function addOrbitControls() {
 	controls.maxPolarAngle = Math.PI;
 }
 
+function removeSplash() {
+	// remove the splash
+	let duration=2000;	// duration of transition, in ms
+	
+	for(let ms=0; ms<duration; ms+=40) {
+		let opacity =  0.5+0.5*Math.cos(Math.PI*ms/duration);
+		setTimeout(() => {  
+			document.getElementById('splash').style.opacity = opacity; 
+			document.getElementById('takePhotoButton').style.opacity = 1-opacity;
+			renderer.domElement.style.opacity = 1-opacity;
+			gui.opacity = 1-opacity;
+		}, ms);
+	}
+
+	setTimeout(() => {  
+		document.getElementById('splash').style.visibility = "hidden"; 
+		document.getElementById('takePhotoButton').style.opacity = 1;
+		renderer.domElement.style.opacity = 1;
+		gui.show();
+	}, duration+100);
+}
+
 // see https://github.com/mrdoob/three.js/blob/master/examples/webgl_animation_skinning_additive_blending.html
 function createGUI() {
 	// const 
 	gui = new GUI();
+	gui.hide();
 
 	const params = {
-		'Camera position': cameraPosition,
+		'Position': cameraPosition,
 		'Transformation': transformation,
 		'Toggle fullscreen': toggleFullscreen,
 		'Share image': share,
-		'&beta;<sub>x</sub>': betaX,
-		'&beta;<sub>y</sub>': betaY,
-		'&beta;<sub>z</sub>': betaZ,
+		'&beta;<sub>x</sub> (= <i>v</i><sub><i>x</i>,camera</sub>/<i>c</i>)': betaX,
+		'&beta;<sub>y</sub> (= <i>v</i><sub><i>y</i>,camera</sub>/<i>c</i>)': betaY,
+		'&beta;<sub>z</sub> (= <i>v</i><sub><i>z</i>,camera</sub>/<i>c</i>)': betaZ,
 		'FOV user-facing camera': fovU,
 		'FOV env.-facing camera': fovE,
-		'FOV screen': fovS,
-		'Forward': pointForward,
-		'Backward': pointBackward,
-		'Towards <b>&beta;</b>': pointBeta,
-		'Towards -<b>&beta;</b>': pointMinusBeta,
-		'Towards <b>&beta;</b> + 90&deg;': pointBetaPlus90,
-		'Towards <b>&beta;</b> - 90&deg;': pointBetaMinus90,
+		'Field of view (&deg;)': fovS,
+		'Point forward (in -<b>z</b> direction)': pointForward,
+		'Point backward (in +<b>z</b> direction)': pointBackward,
+		'Point in <b>&beta;</b> direction': pointBeta,
+		'Point in -<b>&beta;</b> direction': pointMinusBeta,
+		'Point in <b>&beta;</b> + 90&deg; direction': pointBetaPlus90,
+		'Point in <b>&beta;</b> - 90&deg; direction': pointBetaMinus90,
 		'Toggle show circles': function() { circles.visible = !circles.visible; },
 		'Restart video streams': function() { 
 			recreateVideoFeeds(); 
@@ -505,30 +515,28 @@ function createGUI() {
 		}
 	}
 
-	gui.add(params, 'Camera position', { 'Inside lookalike sphere': 'Inside lookalike sphere', 'Outside lookalike sphere': 'Outside lookalike sphere' } ).onChange( changeCamera );
-	gui.add(params, 'Transformation', { 'Lorentz': 'Lorentz', 'Galileo': 'Galileo' } ).onChange( (s) => { transformation = s; console.log(s); });
+	const folderPhysics = gui.addFolder( 'Physics' );
+	folderPhysics.add( params, '&beta;<sub>x</sub> (= <i>v</i><sub><i>x</i>,camera</sub>/<i>c</i>)', -0.99, 0.99, 0.01).onChange( (value) => { betaX = value; updateTransformationMatrix(); setInfo( `<b>&beta;</b> changed; &beta; = ${Math.sqrt(betaX*betaX + betaY*betaY + betaZ*betaZ).toFixed(2)}`); })
+	folderPhysics.add( params, '&beta;<sub>y</sub> (= <i>v</i><sub><i>y</i>,camera</sub>/<i>c</i>)', -0.99, 0.99, 0.01).onChange( (value) => { betaY = value; updateTransformationMatrix(); setInfo( `<b>&beta;</b> changed; &beta; = ${Math.sqrt(betaX*betaX + betaY*betaY + betaZ*betaZ).toFixed(2)}`); })
+	folderPhysics.add( params, '&beta;<sub>z</sub> (= <i>v</i><sub><i>z</i>,camera</sub>/<i>c</i>)', -0.99, 0.99, 0.01).onChange( (value) => { betaZ = value; updateTransformationMatrix(); setInfo( `<b>&beta;</b> changed; &beta; = ${Math.sqrt(betaX*betaX + betaY*betaY + betaZ*betaZ).toFixed(2)}`); })
+	folderPhysics.add( params, 'Transformation', { 'Lorentz': 'Lorentz', 'Galileo': 'Galileo' } ).onChange( (s) => { transformation = s; console.log(s); });
 
-	const folderBeta = gui.addFolder( 'Boost <b>&beta;</b> = <b>v<b><sub>camera</sub>/<i>c</i>' );
-	folderBeta.add( params, '&beta;<sub>x</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaX = value; updateTransformationMatrix(); setInfo( `&beta; = ${Math.sqrt(betaX*betaX + betaY*betaY + betaZ*betaZ)}`); })
-	folderBeta.add( params, '&beta;<sub>y</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaY = value; updateTransformationMatrix(); setInfo( `&beta; = ${Math.sqrt(betaX*betaX + betaY*betaY + betaZ*betaZ)}`); })
-	folderBeta.add( params, '&beta;<sub>z</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaZ = value; updateTransformationMatrix(); setInfo( `&beta; = ${Math.sqrt(betaX*betaX + betaY*betaY + betaZ*betaZ)}`); })
-
-	const folderPoint = gui.addFolder( 'Point camera' );
-	folderPoint.add( params, 'Forward');
-	folderPoint.add( params, 'Backward');
-	folderPoint.add( params, 'Towards <b>&beta;</b>');
-	folderPoint.add( params, 'Towards -<b>&beta;</b>' );
-	folderPoint.add( params, 'Towards <b>&beta;</b> + 90&deg;' );
-	folderPoint.add( params, 'Towards <b>&beta;</b> - 90&deg;' );
+	const folderCamera = gui.addFolder( 'Virtual camera' );
+	folderCamera.add( params, 'Position', { 'Inside lookalike sphere': 'Inside lookalike sphere', 'Outside lookalike sphere': 'Outside lookalike sphere' } ).onChange( changeCamera );
+	folderCamera.add( params, 'Point forward (in -<b>z</b> direction)');
+	folderCamera.add( params, 'Point backward (in +<b>z</b> direction)');
+	folderCamera.add( params, 'Point in <b>&beta;</b> direction');
+	folderCamera.add( params, 'Point in -<b>&beta;</b> direction' );
+	folderCamera.add( params, 'Point in <b>&beta;</b> + 90&deg; direction' );
+	folderCamera.add( params, 'Point in <b>&beta;</b> - 90&deg; direction' );
+	folderCamera.add( params, 'Field of view (&deg;)', 10, 170, 1).onChange( setScreenFOV );   
 	
-	const folderSettings = gui.addFolder( 'Controls' );
+	const folderSettings = gui.addFolder( 'Other settings' );
 	// folderSettings.add( params, 'Toggle show circles');
 	folderSettings.add( params, 'FOV user-facing camera', 10, 170, 1).onChange( (fov) => { fovU = fov; updateUniforms(); });   
 	folderSettings.add( params, 'FOV env.-facing camera', 10, 170, 1).onChange( (fov) => { fovE = fov; updateUniforms(); });   
-	folderSettings.add( params, 'FOV screen', 10, 170, 1).onChange( setScreenFOV );   
 	folderSettings.add( params, 'Restart video streams');
 	folderSettings.close();
-
 }
 
 /**
@@ -589,7 +597,17 @@ function onWindowResize() {
 	setInfo(`window size ${window.innerWidth} &times; ${window.innerHeight}`);	// debug
 }
 
-// function changePosition() {
+function changePosition() {
+	switch(cameraPosition) {
+		case 'Outside lookalike sphere':
+			changeCamera('Inside lookalike sphere');
+			break;
+	 	case 'Inside lookalike sphere':
+	 	default:
+			changeCamera('Outside lookalike sphere');
+	}
+}
+
 function changeCamera(newCameraPosition) {
 	// change the camera position
 	cameraPosition = newCameraPosition;
@@ -721,7 +739,7 @@ function  pointForward() {
 	camera.position.y = 0;
 	camera.position.z = r;
 	controls.update();
-	// camera.updateProjectionMatrix();
+	setInfo('Pointing camera forwards, in -<b>z</b> direction');
 }
 
 function  pointBackward() {
@@ -730,6 +748,7 @@ function  pointBackward() {
 	camera.position.y = 0;
 	camera.position.z = -r;
 	controls.update();
+	setInfo('Pointing camera backwards, in +<b>z</b> direction');
 }
 
 function pointBeta() {
@@ -738,8 +757,9 @@ function pointBeta() {
 		let beta = new THREE.Vector3(betaX, betaY, betaZ).setLength(camera.position.length());
 		camera.position.copy(beta.multiplyScalar(-1));	// look from (-beta) at the origin, so in the direction of +beta
 		controls.update();
+		setInfo('Pointing camera in <b>&beta;</b> direction');
 	} else {
-		setInfo( '&beta; = 0, so there is no direction <b>&beta;</b>!' );
+		setInfo( '<b>&beta;</b> = 0, so there is no <b>&beta;</b> direction!' );
 	}
 	// let r = camera.position.length();
 	// let beta = Math.sqrt(betaX*betaX + betaY*betaY + betaZ*betaZ);
@@ -757,9 +777,9 @@ function pointMinusBeta() {
 		let beta = new THREE.Vector3(betaX, betaY, betaZ).setLength(camera.position.length());
 		camera.position.copy(beta);	// look from beta at the origin, so in the direction of -beta
 		controls.update();
-		setInfo('pointing camera to -<b>&beta;</b>');
+		setInfo('Pointing camera in -<b>&beta;</b> direction');
 	} else {
-		setInfo( '&beta; = 0, so there is no direction <b>&beta;</b>!' );
+		setInfo( '<b>&beta;</b> = 0, so there is no <b>&beta;</b> direction!' );
 	}
 }
 
@@ -767,11 +787,12 @@ function pointBetaPlus90() {
 	let beta2 = betaX*betaX + betaY*betaY + betaZ*betaZ;
 	if(beta2 > 0) {
 		let beta = new THREE.Vector3(betaX, betaY, betaZ).setLength(camera.position.length());
-		beta.applyAxisAngle ( new THREE.Vector3(0, 1, 0), 0.5*Math.PI );
+		beta.applyAxisAngle ( new THREE.Vector3(0, 1, 0), -0.5*Math.PI );
 		camera.position.copy(beta);
 		controls.update();
+		setInfo('Pointing camera in <b>&beta;</b> + 90&deg; direction');
 	} else {
-		setInfo( '&beta; = 0, so there is no direction <b>&beta;</b>!' );
+		setInfo( '<b>&beta;</b> = 0, so there is no <b>&beta;</b> direction!' );
 	}
 }
 
@@ -779,11 +800,12 @@ function pointBetaMinus90() {
 	let beta2 = betaX*betaX + betaY*betaY + betaZ*betaZ;
 	if(beta2 > 0) {
 		let beta = new THREE.Vector3(betaX, betaY, betaZ).setLength(camera.position.length());
-		beta.applyAxisAngle ( new THREE.Vector3(0, 1, 0), -0.5*Math.PI );
+		beta.applyAxisAngle ( new THREE.Vector3(0, 1, 0), 0.5*Math.PI );
 		camera.position.copy(beta);
 		controls.update();
+		setInfo('Pointing camera in <b>&beta;</b> - 90&deg; direction');
 	} else {
-		setInfo( '&beta; = 0, so there is no direction <b>&beta;</b>!' );
+		setInfo( '<b>&beta;</b> = 0, so there is no <b>&beta;</b> direction!' );
 	}
 }
 
