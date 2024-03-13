@@ -211,11 +211,11 @@ function setInfo(text) {
 	setTimeout( () => { if(new Date().getTime() - infotime > 2999) info.innerHTML = `Einstagram, University of Glasgow, <a href="https://github.com/jkcuk/Einstagram">https://github.com/jkcuk/Einstagram</a>` }, 3000);
 }
 
-function showInfo() {
-	if(new Date().getTime() - infotime < 1000) info.innerHTML = infotext;
-	else info.innerHTML =  `Einstagram, University of Glasgow`;
-	// else info.innerHTML =  `Einstagram, University of Glasgow, ${transformation} transformation, &beta; = (${betaX}, ${betaY}, ${betaZ}), screen horiz. FOV = ${fovS}&deg;, ${cameraPosition}`;
-}
+// function showInfo() {
+// 	if(new Date().getTime() - infotime < 1000) info.innerHTML = infotext;
+// 	else info.innerHTML =  `Einstagram, University of Glasgow`;
+// 	// else info.innerHTML =  `Einstagram, University of Glasgow, ${transformation} transformation, &beta; = (${betaX}, ${betaY}, ${betaZ}), screen horiz. FOV = ${fovS}&deg;, ${cameraPosition}`;
+// }
 
 function setWarning(warning) {
 	shaderMaterial.uniforms.warning.value = warning;
@@ -509,9 +509,9 @@ function createGUI() {
 	gui.add(params, 'Transformation', { 'Lorentz': 'Lorentz', 'Galileo': 'Galileo' } ).onChange( (s) => { transformation = s; console.log(s); });
 
 	const folderBeta = gui.addFolder( 'Boost <b>&beta;</b> = <b>v<b><sub>camera</sub>/<i>c</i>' );
-	folderBeta.add( params, '&beta;<sub>x</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaX = value; updateTransformationMatrix(); })
-	folderBeta.add( params, '&beta;<sub>y</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaY = value; updateTransformationMatrix(); })
-	folderBeta.add( params, '&beta;<sub>z</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaZ = value; updateTransformationMatrix(); })
+	folderBeta.add( params, '&beta;<sub>x</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaX = value; updateTransformationMatrix(); setInfo( `&beta; = ${Math.sqrt(betaX*betaX + betaY*betaY + betaZ*betaZ)}`); })
+	folderBeta.add( params, '&beta;<sub>y</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaY = value; updateTransformationMatrix(); setInfo( `&beta; = ${Math.sqrt(betaX*betaX + betaY*betaY + betaZ*betaZ)}`); })
+	folderBeta.add( params, '&beta;<sub>z</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaZ = value; updateTransformationMatrix(); setInfo( `&beta; = ${Math.sqrt(betaX*betaX + betaY*betaY + betaZ*betaZ)}`); })
 
 	const folderPoint = gui.addFolder( 'Point camera' );
 	folderPoint.add( params, 'Forward');
@@ -739,7 +739,7 @@ function pointBeta() {
 		camera.position.copy(beta.multiplyScalar(-1));	// look from (-beta) at the origin, so in the direction of +beta
 		controls.update();
 	} else {
-		showInfo( '&beta; = 0, so there is no direction <b>&beta;</b>!' );
+		setInfo( '&beta; = 0, so there is no direction <b>&beta;</b>!' );
 	}
 	// let r = camera.position.length();
 	// let beta = Math.sqrt(betaX*betaX + betaY*betaY + betaZ*betaZ);
@@ -757,9 +757,9 @@ function pointMinusBeta() {
 		let beta = new THREE.Vector3(betaX, betaY, betaZ).setLength(camera.position.length());
 		camera.position.copy(beta);	// look from beta at the origin, so in the direction of -beta
 		controls.update();
-		showInfo('pointing camera to -<b>&beta;</b>');
+		setInfo('pointing camera to -<b>&beta;</b>');
 	} else {
-		showInfo( '&beta; = 0, so there is no direction <b>&beta;</b>!' );
+		setInfo( '&beta; = 0, so there is no direction <b>&beta;</b>!' );
 	}
 }
 
@@ -771,7 +771,7 @@ function pointBetaPlus90() {
 		camera.position.copy(beta);
 		controls.update();
 	} else {
-		showInfo( '&beta; = 0, so there is no direction <b>&beta;</b>!' );
+		setInfo( '&beta; = 0, so there is no direction <b>&beta;</b>!' );
 	}
 }
 
@@ -783,7 +783,7 @@ function pointBetaMinus90() {
 		camera.position.copy(beta);
 		controls.update();
 	} else {
-		showInfo( '&beta; = 0, so there is no direction <b>&beta;</b>!' );
+		setInfo( '&beta; = 0, so there is no direction <b>&beta;</b>!' );
 	}
 }
 
