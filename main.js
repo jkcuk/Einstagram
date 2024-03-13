@@ -18,7 +18,7 @@ import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-let cameraPosition = 'Inside lookalike sphere', transformation = 'Lorentz', scene;
+let cameraPosition = 'inside lookalike sphere', transformation = 'Lorentz', scene;
 let aspectRatioU = 4.0/3.0, aspectRatioE = 4.0/3.0;
 let renderer, videoU, videoE;
 let camera;	// , cameraInside, cameraOutside;
@@ -245,10 +245,10 @@ function animate() {
 		// set the camera, either to the inside camera or the outside camera
 		switch(cameraPosition)
 		{
-			case 'Outside lookalike sphere':
+			case 'outside lookalike sphere':
 				renderer.render( scene, cameraOutside );
 				break;
-			case 'Inside lookalike sphere':
+			case 'inside lookalike sphere':
 			default:
 				renderer.render( scene, cameraInside );
 		}
@@ -493,6 +493,7 @@ function createGUI() {
 
 	const params = {
 		'Position': cameraPosition,
+		'Position inside &harr; outside lookalike sphere': changePosition,
 		'Transformation': transformation,
 		'Toggle fullscreen': toggleFullscreen,
 		'Share image': share,
@@ -522,7 +523,8 @@ function createGUI() {
 	folderPhysics.add( params, 'Transformation', { 'Lorentz': 'Lorentz', 'Galileo': 'Galileo' } ).onChange( (s) => { transformation = s; console.log(s); });
 
 	const folderCamera = gui.addFolder( 'Virtual camera' );
-	folderCamera.add( params, 'Position', { 'Inside lookalike sphere': 'Inside lookalike sphere', 'Outside lookalike sphere': 'Outside lookalike sphere' } ).onChange( changeCamera );
+	folderCamera.add( params, 'Position inside &harr; outside lookalike sphere' );
+	// folderCamera.add( params, 'Position', { 'inside lookalike sphere': 'inside lookalike sphere', 'outside lookalike sphere': 'outside lookalike sphere' } ).onChange( changeCamera );
 	folderCamera.add( params, 'Point forward (in -<b>z</b> direction)');
 	folderCamera.add( params, 'Point backward (in +<b>z</b> direction)');
 	folderCamera.add( params, 'Point in <b>&beta;</b> direction');
@@ -531,7 +533,7 @@ function createGUI() {
 	folderCamera.add( params, 'Point in <b>&beta;</b> - 90&deg; direction' );
 	folderCamera.add( params, 'Field of view (&deg;)', 10, 170, 1).onChange( setScreenFOV );   
 	
-	const folderSettings = gui.addFolder( 'Other settings' );
+	const folderSettings = gui.addFolder( 'Advanced' );
 	// folderSettings.add( params, 'Toggle show circles');
 	folderSettings.add( params, 'FOV user-facing camera', 10, 170, 1).onChange( (fov) => { fovU = fov; updateUniforms(); });   
 	folderSettings.add( params, 'FOV env.-facing camera', 10, 170, 1).onChange( (fov) => { fovE = fov; updateUniforms(); });   
@@ -599,12 +601,12 @@ function onWindowResize() {
 
 function changePosition() {
 	switch(cameraPosition) {
-		case 'Outside lookalike sphere':
-			changeCamera('Inside lookalike sphere');
+		case 'outside lookalike sphere':
+			changeCamera('inside lookalike sphere');
 			break;
-	 	case 'Inside lookalike sphere':
+	 	case 'inside lookalike sphere':
 	 	default:
-			changeCamera('Outside lookalike sphere');
+			changeCamera('outside lookalike sphere');
 	}
 }
 
@@ -612,20 +614,20 @@ function changeCamera(newCameraPosition) {
 	// change the camera position
 	cameraPosition = newCameraPosition;
 	// switch(cameraPosition) {
-	// 	case 'Outside lookalike sphere':
-	// 		cameraPosition = 'Inside lookalike sphere';
+	// 	case 'outside lookalike sphere':
+	// 		cameraPosition = 'inside lookalike sphere';
 	// 		cameraAnimationTargetDistance = 0.000001;
 	// 		break;
-	// 	case 'Inside lookalike sphere':
+	// 	case 'inside lookalike sphere':
 	// 	default:
-	// 		cameraPosition = 'Outside lookalike sphere';
+	// 		cameraPosition = 'outside lookalike sphere';
 	// 		cameraAnimationTargetDistance = cameraOutsideDistance;
 	// }
 	switch(cameraPosition) {
-		case 'Outside lookalike sphere':
+		case 'outside lookalike sphere':
 			cameraAnimationTargetDistance = cameraOutsideDistance;
 			break;
-		case 'Inside lookalike sphere':
+		case 'inside lookalike sphere':
 		default:
 			cameraAnimationTargetDistance = 0.000001;
 	}
@@ -635,7 +637,7 @@ function changeCamera(newCameraPosition) {
 	setInfo('Moving camera to position '+cameraPosition);
 
 	cameraAnimation = true;
-	// controls.enabled = (cameraPosition == 'Outside lookalike sphere');
+	// controls.enabled = (cameraPosition == 'outside lookalike sphere');
 }
 
 function updateUniforms() {
