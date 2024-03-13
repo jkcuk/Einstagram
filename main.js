@@ -22,8 +22,10 @@ let cameraPosition = 'Inside lookalike sphere', transformation = 'Lorentz', scen
 let aspectRatioU = 4.0/3.0, aspectRatioE = 4.0/3.0;
 let renderer, videoU, videoE;
 let camera;	// , cameraInside, cameraOutside;
-let controls, shaderMaterial, geometry, lookalikeSphere, transformationMatrix;
-
+let controls, shaderMaterial, geometry, 
+	lookalikeSphere, // transformationMatrix, 
+	circles = new THREE.Group();	// redCircle, greenCircle, blueCircle;
+	
 // Nokia HR20, according to https://www.camerafv5.com/devices/manufacturers/hmd_global/nokia_xr20_ttg_0/
 let fovU = 67.3;
 let fovE = 68.3;
@@ -107,7 +109,9 @@ function init() {
 
 	createVideoFeeds();
 
-	createLookalikeSphere();
+	addLookalikeSphere();
+
+	addCircles();
 
 	// user interface
 
@@ -146,7 +150,7 @@ function init() {
 	showingStoredPhoto = false;
 
 	// handle screen-orientation (landscape/portrait) change
-	screen.orientation.addEventListener("change", onScreenOrientationChange);
+	screen.orientation.addEventListener("change", recreateVideoFeeds);
 
 	// add orbit controls to outside camera
 	addOrbitControls();	// add to outside camera
@@ -161,6 +165,7 @@ function init() {
 			renderer.domElement.style.opacity = 1-opacity;
 		}, ms);
 	}
+	
 	setTimeout(() => {  
 		document.getElementById('splash').style.visibility = "hidden"; 
 		// the controls menu
@@ -168,6 +173,7 @@ function init() {
 	}, duration+100);
 	
 }
+
 
 // function handleOrientation(event) {
 // 	const absolute = event.absolute;
@@ -324,7 +330,7 @@ function createVideoFeeds() {
 }
 
 /** create lookalike sphere, textures, transformation matrix */
-function createLookalikeSphere() {
+function addLookalikeSphere() {
 	const textureU = new THREE.VideoTexture( videoU );
 	textureU.colorSpace = THREE.SRGBColorSpace;
 
@@ -400,9 +406,52 @@ function createLookalikeSphere() {
 	scene.add( lookalikeSphere );
 
 	// also create the lookalike sphere's transformation matrix
-	transformationMatrix = new THREE.Matrix4();
-	transformationMatrix.identity();
+	// transformationMatrix = new THREE.Matrix4();
+	// transformationMatrix.identity();
 }
+
+function addCircles() {
+	let blueCircle = createCircle(0x444444);
+	blueCircle.matrixAutoUpdate = false;
+	// scene.add( blueCircle );
+
+	let redCircle = createCircle(0xaaaaaa);
+	redCircle.rotation.x = Math.PI / 2;
+	// redCircle.matrixAutoUpdate = false;
+	// scene.add( redCircle );
+
+	let greenCircle = createCircle(0xaaaaaa);
+	greenCircle.rotation.y = Math.PI / 2;
+	// greenCircle.matrixAutoUpdate = false;
+	// scene.add( greenCircle );
+
+	circles.add( redCircle );
+	circles.add( greenCircle );
+	circles.add( blueCircle );
+	circles.matrixAutoUpdate = false;
+	circles.visible = false;
+	scene.add(circles);
+}
+
+/** 
+ * example: scene.add(createCircle(1, 0x0000ff)); // add a blue circle of radius 1 
+ */
+function createCircle(lineColor) {
+	let geometry = new THREE.BufferGeometry();	// new THREE.RingGeometry( 1.2, 1.2, 100, 1, 0, 2*Math.PI ); 
+	let lineMaterial = new THREE.LineBasicMaterial( { color: lineColor } );
+	const vertices = [];
+	var segments = 100;
+	for (let i = 0; i <= segments; i++) {
+		const theta = (i / segments) * Math.PI * 2;
+		const x = Math.cos(theta);
+		const y = Math.sin(theta);
+		vertices.push(x, y, 0);
+	}
+	geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+return new THREE.Line(geometry, lineMaterial);
+}
+// const axesHelper = new THREE.AxesHelper( 5 );
+// scene.add( axesHelper );
 
 function addOrbitControls() {
 	// controls
@@ -440,27 +489,46 @@ function createGUI() {
 		'&beta;<sub>x</sub>': betaX,
 		'&beta;<sub>y</sub>': betaY,
 		'&beta;<sub>z</sub>': betaZ,
-		'user-facing camera': fovU,
-		'env.-facing camera': fovE,
-		'screen': fovS,
-		// '<i>z</i> coordinate': cameraOutside.position.z,
-		'Point forward': pointForward 
+		'FOV user-facing camera': fovU,
+		'FOV env.-facing camera': fovE,
+		'FOV screen': fovS,
+		'Forward': pointForward,
+		'Backward': pointBackward,
+		'Towards <b>&beta;</b>': pointBeta,
+		'Towards -<b>&beta;</b>': pointMinusBeta,
+		'Towards <b>&beta;</b> + 90&deg;': pointBetaPlus90,
+		'Towards <b>&beta;</b> - 90&deg;': pointBetaMinus90,
+		'Toggle show circles': function() { circles.visible = !circles.visible; },
+		'Restart video streams': function() { 
+			recreateVideoFeeds(); 
+			setInfo("Restarting video streams");
+		}
 	}
 
 	gui.add(params, 'Camera position', { 'Inside lookalike sphere': 'Inside lookalike sphere', 'Outside lookalike sphere': 'Outside lookalike sphere' } ).onChange( changeCamera );
-	gui.add(params, 'Point forward');
 	gui.add(params, 'Transformation', { 'Lorentz': 'Lorentz', 'Galileo': 'Galileo' } ).onChange( (s) => { transformation = s; console.log(s); });
 
-	const folderBeta = gui.addFolder( '&beta;' );
+	const folderBeta = gui.addFolder( 'Boost <b>&beta;</b> = <b>v<b><sub>camera</sub>/<i>c</i>' );
 	folderBeta.add( params, '&beta;<sub>x</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaX = value; updateTransformationMatrix(); })
 	folderBeta.add( params, '&beta;<sub>y</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaY = value; updateTransformationMatrix(); })
 	folderBeta.add( params, '&beta;<sub>z</sub>', -0.99, 0.99, 0.01).onChange( (value) => { betaZ = value; updateTransformationMatrix(); })
 
-	const folderFOV = gui.addFolder( 'FOVs' );
-	folderFOV.add( params, 'user-facing camera', 10, 170, 1).onChange( (fov) => { fovU = fov; updateUniforms(); });   
-	folderFOV.add( params, 'env.-facing camera', 10, 170, 1).onChange( (fov) => { fovE = fov; updateUniforms(); });   
-	folderFOV.add( params, 'screen', 10, 170, 1).onChange( setScreenFOV );   
-	folderFOV.open();
+	const folderPoint = gui.addFolder( 'Point camera' );
+	folderPoint.add( params, 'Forward');
+	folderPoint.add( params, 'Backward');
+	folderPoint.add( params, 'Towards <b>&beta;</b>');
+	folderPoint.add( params, 'Towards -<b>&beta;</b>' );
+	folderPoint.add( params, 'Towards <b>&beta;</b> + 90&deg;' );
+	folderPoint.add( params, 'Towards <b>&beta;</b> - 90&deg;' );
+	
+	const folderSettings = gui.addFolder( 'Controls' );
+	// folderSettings.add( params, 'Toggle show circles');
+	folderSettings.add( params, 'FOV user-facing camera', 10, 170, 1).onChange( (fov) => { fovU = fov; updateUniforms(); });   
+	folderSettings.add( params, 'FOV env.-facing camera', 10, 170, 1).onChange( (fov) => { fovE = fov; updateUniforms(); });   
+	folderSettings.add( params, 'FOV screen', 10, 170, 1).onChange( setScreenFOV );   
+	folderSettings.add( params, 'Restart video streams');
+	folderSettings.close();
+
 }
 
 /**
@@ -593,25 +661,28 @@ function updateTransformationMatrix() {
 			phi=0;
 		} else {
 			theta = Math.asin(-betaY/beta);
-			phi = Math.PI+Math.atan2(-betaX,betaZ);
+			phi = Math.PI+Math.atan2(-betaX,-betaZ);
 			// setInfo(`(&theta;, &phi;) = (${theta.toFixed(2)}, ${phi.toFixed(2)})`);
 		}
 
 		// re-calculate the transformation matrix
 		let m = new THREE.Matrix4();	
 		// start from the identity matrix
-		transformationMatrix.identity();	
+		let transformationMatrix1 = new THREE.Matrix4();
+		transformationMatrix1.makeRotationY(phi);	// identity();	
 		// rotate the beta direction into the z direction
-		transformationMatrix.multiply(m.makeRotationY(phi));
-		transformationMatrix.multiply(m.makeRotationX(theta));
+		// transformationMatrix1.multiply(m.makeRotationY(phi));
+		transformationMatrix1.multiply(m.makeRotationX(theta));
+		// translate by beta in the direction of beta, i.e. z
+		transformationMatrix1.multiply(m.makeTranslation(new THREE.Vector3(0, 0, beta)));
 		// scale by 1/gamma in the directions perpendicular to beta, i.e. x and y, 
 		// if the Lorentz transformation is chosen
-		if(transformation === 'Lorentz') transformationMatrix.multiply(m.makeScale(oneOverGamma, oneOverGamma, 1.0));
-		// translate by beta in the direction of beta, i.e. z
-		transformationMatrix.multiply(m.makeTranslation(new THREE.Vector3(0, 0, beta)));
-		// rotate back to the original orientation
-		transformationMatrix.multiply(m.makeRotationX(-theta));
-		transformationMatrix.multiply(m.makeRotationY(-phi));
+		if(transformation === 'Lorentz') transformationMatrix1.multiply(m.makeScale(oneOverGamma, oneOverGamma, 1.0));
+
+		let transformationMatrix2 = new THREE.Matrix4();
+			// rotate back to the original orientation
+		transformationMatrix2.makeRotationX(-theta);
+		transformationMatrix2.multiply(m.makeRotationY(-phi));
 
 		// rotate the lookalike sphere according to the device orientation
 		// see https://developer.mozilla.org/en-US/docs/Web/API/Device_orientation_events/Using_device_orientation_with_3D_transforms
@@ -619,8 +690,13 @@ function updateTransformationMatrix() {
 		// transformationMatrix.multiply(m.makeRotationX(-deviceBeta*Math.PI/180));
 		// transformationMatrix.multiply(m.makeRotationY(deviceGamma*Math.PI/180));
 
+		circles.matrix.copy(transformationMatrix1);
+		// greenCircle.matrix.copy(transformationMatrix1);
+		// blueCircle.matrix.copy(transformationMatrix1);
+
 		// set the lookalike sphere's transformation matrix to the matrix we just calculated
-		lookalikeSphere.matrix.copy(transformationMatrix);
+		transformationMatrix1.multiply(transformationMatrix2);
+		lookalikeSphere.matrix.copy(transformationMatrix1);
 
 		if(shaderMaterial.uniforms.warning.value) {
 			setWarning(false);
@@ -630,7 +706,7 @@ function updateTransformationMatrix() {
 }
 	
 // // see https://developer.mozilla.org/en-US/docs/Web/API/ScreenOrientation/change_event
-function onScreenOrientationChange() {
+function recreateVideoFeeds() {
 	// stop current video streams...
 	videoU.srcObject.getTracks().forEach(function(track) { track.stop(); });
 	videoE.srcObject.getTracks().forEach(function(track) { track.stop(); });
@@ -646,6 +722,69 @@ function  pointForward() {
 	camera.position.z = r;
 	controls.update();
 	// camera.updateProjectionMatrix();
+}
+
+function  pointBackward() {
+	let r = camera.position.length();
+	camera.position.x = 0;
+	camera.position.y = 0;
+	camera.position.z = -r;
+	controls.update();
+}
+
+function pointBeta() {
+	let beta2 = betaX*betaX + betaY*betaY + betaZ*betaZ;
+	if(beta2 > 0) {
+		let beta = new THREE.Vector3(betaX, betaY, betaZ).setLength(camera.position.length());
+		camera.position.copy(beta.multiplyScalar(-1));	// look from (-beta) at the origin, so in the direction of +beta
+		controls.update();
+	} else {
+		showInfo( '&beta; = 0, so there is no direction <b>&beta;</b>!' );
+	}
+	// let r = camera.position.length();
+	// let beta = Math.sqrt(betaX*betaX + betaY*betaY + betaZ*betaZ);
+	// if(beta > 0) {
+	// 	camera.position.x = -r*betaX/beta;
+	// 	camera.position.y = -r*betaY/beta;
+	// 	camera.position.z = -r*betaZ/beta;
+	// 	controls.update();
+	// }
+}
+
+function pointMinusBeta() {
+	let beta2 = betaX*betaX + betaY*betaY + betaZ*betaZ;
+	if(beta2 > 0) {
+		let beta = new THREE.Vector3(betaX, betaY, betaZ).setLength(camera.position.length());
+		camera.position.copy(beta);	// look from beta at the origin, so in the direction of -beta
+		controls.update();
+		showInfo('pointing camera to -<b>&beta;</b>');
+	} else {
+		showInfo( '&beta; = 0, so there is no direction <b>&beta;</b>!' );
+	}
+}
+
+function pointBetaPlus90() {
+	let beta2 = betaX*betaX + betaY*betaY + betaZ*betaZ;
+	if(beta2 > 0) {
+		let beta = new THREE.Vector3(betaX, betaY, betaZ).setLength(camera.position.length());
+		beta.applyAxisAngle ( new THREE.Vector3(0, 1, 0), 0.5*Math.PI );
+		camera.position.copy(beta);
+		controls.update();
+	} else {
+		showInfo( '&beta; = 0, so there is no direction <b>&beta;</b>!' );
+	}
+}
+
+function pointBetaMinus90() {
+	let beta2 = betaX*betaX + betaY*betaY + betaZ*betaZ;
+	if(beta2 > 0) {
+		let beta = new THREE.Vector3(betaX, betaY, betaZ).setLength(camera.position.length());
+		beta.applyAxisAngle ( new THREE.Vector3(0, 1, 0), -0.5*Math.PI );
+		camera.position.copy(beta);
+		controls.update();
+	} else {
+		showInfo( '&beta; = 0, so there is no direction <b>&beta;</b>!' );
+	}
 }
 
 async function toggleFullscreen() {

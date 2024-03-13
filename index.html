@@ -3,6 +3,7 @@
 	<head>
 		<meta charset="utf-8">
 		<title>Einstagram</title>
+		<link rel="icon" type="image/x-icon" href="./favicon.png">
 		<style>
     	    body {
         	    margin: 0;
@@ -21,9 +22,9 @@
 			    bottom: 30px;
     			left: 50%;
     			transform: translateX(-50%); /* see https://stackoverflow.com/questions/19461521/how-to-center-an-element-horizontally-and-vertically */
-				width: 200px; /* Set the width of the image */
+				width: 170px; /* Set the width of the image */
     	        cursor: pointer;
-	            z-index: 1; /* Ensure image is above the canvas */
+	            z-index: 2; /* Ensure image is above the canvas */
   	      	}
 			#fullscreenButton {
     	        position: absolute; /* Position the image absolutely */
@@ -31,7 +32,7 @@
           	  	bottom: 20px;
             	width: 20px; /* Set the width of the image */
     	        cursor: pointer;
-	            z-index: 1; /* Ensure image is above the canvas */
+	            z-index: 2; /* Ensure image is above the canvas */
   	      	}
 			#changePositionButton {
     	        position: absolute; /* Position the image absolutely */
@@ -40,7 +41,7 @@
             	width: 40px; /* Set the width of the image */
     	        cursor: pointer;
 				visibility: hidden;	/* hide this button for the moment */
-	            z-index: 1; /* Ensure image is above the canvas */
+	            z-index: 2; /* Ensure image is above the canvas */
   	      	}
 			#backButton {
     	        position: absolute; /* Position the image absolutely */
@@ -49,7 +50,7 @@
             	width: 20px; /* Set the width of the image */
     	        cursor: pointer;
 				visibility: hidden;	/* hide this button for the moment */
-	            z-index: 1; /* Ensure image is above the canvas */
+	            z-index: 2; /* Ensure image is above the canvas */
   	      	}
 			#shareButton {
     	        position: absolute; /* Position the image absolutely */
@@ -58,7 +59,7 @@
             	width: 20px; /* Set the width of the image */
     	        cursor: pointer;
 				visibility: hidden;	/* hide this button for the moment */
-	            z-index: 1; /* Ensure image is above the canvas */
+	            z-index: 2; /* Ensure image is above the canvas */
   	      	}
 			#deleteButton {
     	        position: absolute; /* Position the image absolutely */
@@ -67,7 +68,7 @@
             	width: 20px; /* Set the width of the image */
     	        cursor: pointer;
 				visibility: hidden;	/* hide this button for the moment */
-	            z-index: 1; /* Ensure image is above the canvas */
+	            z-index: 2; /* Ensure image is above the canvas */
   	      	}
 			#storedPhotoThumbnail {
 				position: absolute;
@@ -87,7 +88,7 @@
     			max-width: 100%;
 				max-height: 100%;
 				visibility: hidden;	/* hide this button for the moment */
-	            z-index: 0; /* Ensure image is above the canvas */
+	            z-index: 1; /* Ensure image is above the canvas */
   	      	}
 			#livePhoto {
 				position: absolute;
@@ -104,7 +105,7 @@
     			transform: translateX(-50%) translateY(-50%); /* see https://stackoverflow.com/questions/19461521/how-to-center-an-element-horizontally-and-vertically */
     			max-width: 100%;
 				max-height: 100%;
-	            z-index: 2; /* Ensure image is above the canvas */
+	            z-index: 3; /* Ensure image is above the canvas */
   	      	}
    		</style>
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
