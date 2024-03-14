@@ -453,7 +453,7 @@ function addOrbitControls() {
 	controls.dampingFactor = 0.05;
 
 	controls.enablePan = false;
-	controls.enableZoom = false;
+	controls.enableZoom = true;
 
 	// allowing control of the distance can result in the view being no longer 
 	// centred on the origin, so don't allow it
