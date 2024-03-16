@@ -93,8 +93,8 @@ function init() {
 	scene = new THREE.Scene();
 	scene.background = new THREE.Color( 'skyblue' );
 	let windowAspectRatio = window.innerWidth / window.innerHeight;
-	camera = new THREE.PerspectiveCamera( fovS, windowAspectRatio, 0.00001, 10 );
-	camera.position.z = 0.01;
+	camera = new THREE.PerspectiveCamera( fovS, windowAspectRatio, 0.0001, cameraOutsideDistance+1.1 );
+	camera.position.z = 0.001;
 	// cameraInside = new THREE.PerspectiveCamera( fovS, windowAspectRatio, 0.00001, 2.1 );
 	// cameraOutside = new THREE.PerspectiveCamera( fovS, windowAspectRatio, 0.001, 10 );
 	// cameraOutside.position.z = cameraOutsideDistance;
