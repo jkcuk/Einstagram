@@ -56,6 +56,7 @@ let gui;
 let showingStoredPhoto;
 
 let storedPhoto;
+let storedPhotoDescription;
 
 // from https://github.com/4nt0nio/jpegcam
 const click = new Audio('./shutter.mp3');
@@ -837,7 +838,7 @@ function showStoredPhoto() {
 	document.getElementById('storedPhoto').style.visibility = "visible";
 	showingStoredPhoto = true;
 
-	setInfo('Showing stored photo');
+	setInfo('Showing stored photo, '+storedPhotoDescription);
 }
 
 function showLivePhoto() {
@@ -869,6 +870,7 @@ function takePhoto() {
 
 		storedPhoto = renderer.domElement.toDataURL('image/png');
 
+storedPhotoDescription = `beta=(${betaX.toFixed(2)},${betaY.toFixed(2)},${betaZ.toFixed(2)})`;
 		// 
 		document.getElementById('storedPhoto').src=storedPhoto;
 		document.getElementById('storedPhotoThumbnail').src=storedPhoto;
@@ -885,7 +887,7 @@ async function share() {
 		fetch(storedPhoto)
 		.then(response => response.blob())
 		.then(blob => {
-			const file = new File([blob], `Einstagram beta=(${betaX.toFixed(2)},${betaY.toFixed(2)},${betaZ.toFixed(2)}).png`, { type: blob.type });
+			const file = new File([blob], 'Einstagram '+storedPhotoDescription+'.png', { type: blob.type });
 
 			// Use the Web Share API to share the screenshot
 			if (navigator.share) {
