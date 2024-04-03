@@ -1,3 +1,4 @@
+
 // This code is based on three.js, which comes with the following license:
 //
 // The MIT License
@@ -58,8 +59,8 @@ let showingStoredPhoto;
 let storedPhoto;
 let storedPhotoDescription;
 
-// from https://github.com/4nt0nio/jpegcam
-const click = new Audio('./shutter.mp3');
+// my Canon EOS450D camera
+const click = new Audio('./click.m4a');
 
 init();
 animate();
