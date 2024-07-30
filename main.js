@@ -18,6 +18,8 @@ import * as THREE from 'three';
 
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { DragControls } from 'three/addons/controls/DragControls.js';
+
 
 let cameraPosition = 'inside lookalike sphere', transformation = 'Lorentz', scene;
 let aspectRatioU = 4.0/3.0, aspectRatioE = 4.0/3.0;
@@ -26,6 +28,10 @@ let camera;	// , cameraInside, cameraOutside;
 let controls, shaderMaterial, geometry, 
 	lookalikeSphere, // transformationMatrix, 
 	circles = new THREE.Group();	// redCircle, greenCircle, blueCircle;
+let dragControls, reardragControls, ControlSphere, rearControlSphere; //control sphere
+const whiteColor = new THREE.Color(0xFFFFFF);
+const BlueColor = new THREE.Color(0x0000FF);
+const RedColor = new THREE.Color(0xFF4500);
 	
 // Nokia HR20, according to https://www.camerafv5.com/devices/manufacturers/hmd_global/nokia_xr20_ttg_0/
 let fovU = 67.3;
@@ -35,9 +41,20 @@ let fovS = 68;
 // the Cartesian components of the boost, in units of c
 // ()
 let betaX = 0, betaY = 0, betaZ = 0;
+let storedbetaX = 0, storedbetaY = 0, storedbetaZ = 0; 
 
 // device orientation
-// let deviceAlpha = 0, deviceBeta = 90, deviceGamma = 0;
+let realspeedpoint; // velocity coordinates in the scene frame 
+let deviceAlpha = 0, deviceBeta = 0, deviceGamma = 0;
+let initialAlpha, initialBeta, initialGamma;
+let dragtheta = Math.PI/2, dragphi = Math.PI;	// theta and phi in the camera frame
+let controlradius= 0.2, sizeradius= 0.005;	// the orbital radius and size of the control sphere 
+
+// control sphere animation
+let controlRadiusStart, controlRadiusTarget; 
+let sizeRadiusStart, sizeRadiusTarget;
+let radiusAnimationStartTime, radiusAnimationTargetTime;
+let radiusAnimation = false;
 
 // boost orientation
 // let boostAlpha = 0, boostBeta = 90, boostGamma = 0;
@@ -53,6 +70,17 @@ let info = document.createElement('div');
 let infotime;	// the time the last info was posted
 
 let gui;
+
+// gyroscope mode settings in createGUI function
+let screenOrientationStatus = 'portrait';
+let gyrospeed = 0.50;
+let oldspeed = gyrospeed;
+let gyroSpeedy, controlspheretoggle;
+let startToggle;
+let permission=false;
+let isGyroActive=false;
+let isdragstart=false;
+
 
 let showingStoredPhoto;
 
@@ -112,13 +140,14 @@ function init() {
 	createVideoFeeds();
 
 	addLookalikeSphere();
-
+	addControlSphere();
+	addrearControlSphere();
 	addCircles();
+	
 
 	// user interface
 
-	// handle device orientation
-	// window.addEventListener("deviceorientation", handleOrientation, true);
+	
 
 	// handle window resize
 	window.addEventListener("resize", onWindowResize, false);
@@ -152,11 +181,18 @@ function init() {
 	showingStoredPhoto = false;
 
 	// handle screen-orientation (landscape/portrait) change
-	screen.orientation.addEventListener("change", recreateVideoFeeds);
+	screen.orientation.addEventListener("change", () => {
+		recreateVideoFeeds();
+		screenstatus();
+	});
+	screenstatus();
 
 	// add orbit controls to outside camera
 	addOrbitControls();	// add to outside camera
 
+	// add drag controls to control sphere
+	initDragControls();
+	
 	// the controls menu
 	createGUI();
 
@@ -164,15 +200,6 @@ function init() {
 }
 
 
-// function handleOrientation(event) {
-// 	const absolute = event.absolute;
-// 	deviceAlpha = event.alpha;
-// 	deviceBeta = event.beta;
-// 	deviceGamma = event.gamma;
-  
-// 	// Do stuff with the new orientation data
-// 	setInfo(`Orientation: &alpha; = ${deviceAlpha.toFixed(2)}, &beta; = ${deviceBeta.toFixed(2)}, &gamma; = ${deviceGamma.toFixed(2)}`);
-//   }
 
 /** 
  * Add a text field to the bottom left corner of the screen
@@ -213,8 +240,10 @@ function setWarning(warning) {
 function animate() {
 	requestAnimationFrame( animate );
 
+	
 	// calculate the matrix that describes the correct distortion of the lookalike sphere
 	updateTransformationMatrix();
+
 	
 	if(!showingStoredPhoto) {
 		if(cameraAnimation) {
@@ -242,6 +271,26 @@ function animate() {
 			controls.maxDistance = r;
 		}
 
+		// the animation of control sphere when virtual camera changes
+		if (radiusAnimation) {
+			let t = Date.now();
+			if (t > radiusAnimationTargetTime) {
+				controlradius = controlRadiusTarget;
+				sizeradius = sizeRadiusTarget;
+				radiusAnimation = false;
+			} else {
+				let f = (t - radiusAnimationStartTime) / (radiusAnimationTargetTime - radiusAnimationStartTime);
+				let c = 0.5 - 0.5 * Math.cos(Math.PI * f);
+				controlradius = controlRadiusStart + c * (controlRadiusTarget - controlRadiusStart);
+				sizeradius = sizeRadiusStart + c * (sizeRadiusTarget - sizeRadiusStart);
+			}
+	
+			// Update control sphere and rear control sphere sizes and positions
+			updateControlSphere();
+			updateRearControlSphere();
+		}
+
+
 		renderer.render( scene,  camera );
 		/*
 		// set the camera, either to the inside camera or the outside camera
@@ -263,6 +312,7 @@ function animate() {
 	// 	context.drawImage( photo, 100, 100 );
 	// }
 }
+
 
 function createVideoFeeds() {
 	videoU = document.getElementById( 'videoU' );
@@ -399,6 +449,77 @@ function addLookalikeSphere() {
 	// transformationMatrix.identity();
 }
 
+// create control sphere
+function addControlSphere() {
+	let sphereGeometry = new THREE.SphereGeometry(sizeradius, 32, 32);
+    let sphereMaterial = new THREE.MeshBasicMaterial({ color: whiteColor });
+  	ControlSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+	let outlineGeometry = new THREE.SphereGeometry((0.1*sizeradius+sizeradius), 32, 32);
+    let outlineMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide});
+    let outlineMesh = new THREE.Mesh(outlineGeometry, outlineMaterial);
+
+	ControlSphere.add(outlineMesh);
+
+    ControlSphere.position.set(0, 0, -controlradius);
+	
+	outlineMesh.raycast = () => {};
+
+    scene.add(ControlSphere);
+	ControlSphere.visible= false;
+
+}
+
+// update control sphere color according to the velocity
+function updateControlSphereColor(gyrospeed) {
+   
+    let interpolatedColor = new THREE.Color();
+    interpolatedColor.lerpColors(whiteColor, BlueColor, Math.abs(gyrospeed));
+
+	let interpolatedColorrear = new THREE.Color();
+    interpolatedColorrear.lerpColors(whiteColor, RedColor, Math.abs(gyrospeed));
+
+    ControlSphere.material.color.set(interpolatedColor);
+	rearControlSphere.material.color.set(interpolatedColorrear);
+}
+
+function addrearControlSphere() {
+	let sphereGeometry = new THREE.SphereGeometry(sizeradius, 32, 32);
+	let sphereMaterial = new THREE.MeshBasicMaterial({ color: whiteColor });
+  	rearControlSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+	let outlineGeometry = new THREE.SphereGeometry((0.1*sizeradius+sizeradius), 32, 32);
+	let outlineMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide});
+	let outlineMesh = new THREE.Mesh(outlineGeometry, outlineMaterial);
+
+	rearControlSphere.add(outlineMesh);
+
+	rearControlSphere.position.set(0, 0, controlradius);
+
+	outlineMesh.raycast = () => {};
+
+	scene.add(rearControlSphere);
+	rearControlSphere.visible= false;
+}
+
+// update outline thickness when dragging control sphere
+function changeOutlineThickness(newRadius) {
+    if (ControlSphere && ControlSphere.children.length > 0) {
+        let outlineMesh = ControlSphere.children[0];
+        let outlineGeometry = new THREE.SphereGeometry(newRadius, 32, 32);
+        outlineMesh.geometry.dispose(); 
+        outlineMesh.geometry = outlineGeometry; 
+    }
+
+	if (rearControlSphere && rearControlSphere.children.length > 0) {
+        let outlineMesh = rearControlSphere.children[0];
+        let outlineGeometry = new THREE.SphereGeometry(newRadius, 32, 32);
+        outlineMesh.geometry.dispose(); 
+        outlineMesh.geometry = outlineGeometry; 
+    }
+
+}
+
 function addCircles() {
 	let blueCircle = createCircle(0x444444);
 	blueCircle.matrixAutoUpdate = false;
@@ -456,6 +577,7 @@ function addOrbitControls() {
 
 	controls.enablePan = false;
 	controls.enableZoom = true;
+	//setInfo('相机拖动启用');
 
 	// allowing control of the distance can result in the view being no longer 
 	// centred on the origin, so don't allow it
@@ -463,6 +585,84 @@ function addOrbitControls() {
 	// controls.maxDistance = cameraOutsideDistance;
 
 	controls.maxPolarAngle = Math.PI;
+}
+
+//update theta and phi in camera frame when dragging control sphere;
+function initDragControls() {
+    dragControls = new DragControls([ControlSphere], camera, renderer.domElement);	
+
+	dragControls.addEventListener('dragstart', function (event) {
+        controls.enabled = false;  // stop orbitcontrols when dragging
+		changeOutlineThickness(0.5*sizeradius+sizeradius);
+		isdragstart=true;
+    });
+	
+    dragControls.addEventListener('drag', function (event) {
+        let posdrag = event.object.position;
+        let lengthdrag = Math.sqrt(posdrag.x * posdrag.x + posdrag.y * posdrag.y + posdrag.z * posdrag.z);
+        let scaledrag = controlradius / lengthdrag;
+		let pointX=posdrag.x * scaledrag;
+		let pointY=posdrag.y * scaledrag; 
+		let pointZ=posdrag.z * scaledrag;
+
+		dragtheta=Math.acos(pointY/controlradius);
+		let dragphi1=Math.atan2(pointX, pointZ);
+		
+		if (dragphi1 < 0) {
+			dragphi = dragphi1+2* Math.PI;
+		} else {
+			dragphi = dragphi1;
+		}
+		
+    });
+	
+	dragControls.addEventListener('dragend', function (event) {
+        changeOutlineThickness(0.1*sizeradius+sizeradius);
+		isdragstart=false;
+		controls.enabled = true; 
+		//controls.update();
+		//setInfo(`x = ${dragx.toFixed(2)}, y = ${dragy.toFixed(2)},z = ${dragz.toFixed(2)}`);
+    });
+	dragControls.enabled = false;
+
+
+	reardragControls = new DragControls([rearControlSphere], camera, renderer.domElement);	
+
+	reardragControls.addEventListener('dragstart', function (event) {
+        controls.enabled = false; 
+		changeOutlineThickness(0.5*sizeradius+sizeradius);			
+		isdragstart=true;
+    });
+	
+	//rear control sphere
+    reardragControls.addEventListener('drag', function (event) {
+        let posdrag = event.object.position;
+        let lengthdrag = Math.sqrt(posdrag.x * posdrag.x + posdrag.y * posdrag.y + posdrag.z * posdrag.z);
+        let scaledrag = controlradius / lengthdrag;
+		let rearpointX=posdrag.x * scaledrag;
+		let rearpointY=posdrag.y * scaledrag; 
+		let rearpointZ=posdrag.z * scaledrag;
+
+		dragtheta=Math.acos(-rearpointY/controlradius);
+		let dragphi1=Math.atan2(-rearpointX, -rearpointZ);
+		
+		if (dragphi1 < 0) {
+			dragphi = dragphi1+2* Math.PI;
+		} else {
+			dragphi = dragphi1;
+		}
+		
+    });
+	
+	reardragControls.addEventListener('dragend', function (event) {
+        changeOutlineThickness(0.1*sizeradius+sizeradius);
+		isdragstart=false;
+		controls.enabled = true;
+		//controls.update();
+		//setInfo(`x = ${dragx.toFixed(2)}, y = ${dragy.toFixed(2)},z = ${dragz.toFixed(2)}`);
+    });
+	reardragControls.enabled = false;
+
 }
 
 function removeSplash() {
@@ -511,18 +711,46 @@ function createGUI() {
 		'Point in -<b>&beta;</b> direction': pointMinusBeta,
 		'Point in <b>&beta;</b> + 90&deg; direction': pointBetaPlus90,
 		'Point in <b>&beta;</b> - 90&deg; direction': pointBetaMinus90,
+		'Start gyroscope mode': GyroToggle,
+		'<b>&beta;</b> direction control': true,
+		'&beta; (= <i>v</i><sub>camera</sub>/<i>c</i>)': gyrospeed,			
 		'Toggle show circles': function() { circles.visible = !circles.visible; },
 		'Restart video streams': function() { 
 			recreateVideoFeeds(); 
 			setInfo("Restarting video streams");
 		}
+
 	}
 
 	const folderPhysics = gui.addFolder( 'Physics' );
-	folderPhysics.add( params, '&beta;<sub>x</sub> (= <i>v</i><sub><i>x</i>,camera</sub>/<i>c</i>)', -0.99, 0.99, 0.01).onChange( (value) => { betaX = value; updateTransformationMatrix(); setInfo( `<b>&beta;</b> changed; &beta; = ${Math.sqrt(betaX*betaX + betaY*betaY + betaZ*betaZ).toFixed(2)}`); })
-	folderPhysics.add( params, '&beta;<sub>y</sub> (= <i>v</i><sub><i>y</i>,camera</sub>/<i>c</i>)', -0.99, 0.99, 0.01).onChange( (value) => { betaY = value; updateTransformationMatrix(); setInfo( `<b>&beta;</b> changed; &beta; = ${Math.sqrt(betaX*betaX + betaY*betaY + betaZ*betaZ).toFixed(2)}`); })
-	folderPhysics.add( params, '&beta;<sub>z</sub> (= <i>v</i><sub><i>z</i>,camera</sub>/<i>c</i>)', -0.99, 0.99, 0.01).onChange( (value) => { betaZ = value; updateTransformationMatrix(); setInfo( `<b>&beta;</b> changed; &beta; = ${Math.sqrt(betaX*betaX + betaY*betaY + betaZ*betaZ).toFixed(2)}`); })
-	folderPhysics.add( params, 'Transformation', { 'Lorentz': 'Lorentz', 'Galileo': 'Galileo' } ).onChange( (s) => { transformation = s; console.log(s); });
+	folderPhysics.add( params, '&beta;<sub>x</sub> (= <i>v</i><sub><i>x</i>,camera</sub>/<i>c</i>)', -0.99, 0.99, 0.01).onChange( 
+		(value) => { 
+			betaX = value; storedbetaX=value; updateTransformationMatrix(); 
+				if (isGyroActive) {
+					setInfo('Gyroscope mode actived. Modifying the speed within this option will be ineffective.');
+				} else {
+					setInfo( `<b>&beta;</b> changed; &beta; = ${Math.sqrt(betaX*betaX + betaY*betaY + betaZ*betaZ).toFixed(2)}`);
+				} 
+				})
+	folderPhysics.add( params, '&beta;<sub>y</sub> (= <i>v</i><sub><i>y</i>,camera</sub>/<i>c</i>)', -0.99, 0.99, 0.01).onChange( 
+		(value) => { 
+			betaY = value; storedbetaY=value; updateTransformationMatrix(); 
+				if (isGyroActive) {
+					setInfo('Gyroscope mode actived. Modifying the speed within this option will be ineffective.');
+				} else {
+					setInfo( `<b>&beta;</b> changed; &beta; = ${Math.sqrt(betaX*betaX + betaY*betaY + betaZ*betaZ).toFixed(2)}`); 
+				}
+				})
+	folderPhysics.add( params, '&beta;<sub>z</sub> (= <i>v</i><sub><i>z</i>,camera</sub>/<i>c</i>)', -0.99, 0.99, 0.01).onChange( 
+		(value) => { 
+			betaZ = value; storedbetaZ=value; updateTransformationMatrix(); 
+				if (isGyroActive) {
+					setInfo('Gyroscope mode actived. Modifying the speed within this option will be ineffective.');
+				} else {
+					setInfo( `<b>&beta;</b> changed; &beta; = ${Math.sqrt(betaX*betaX + betaY*betaY + betaZ*betaZ).toFixed(2)}`); 
+				}
+				})
+	folderPhysics.add( params, 'Transformation', { 'Lorentz': 'Lorentz', 'Galileo': 'Galileo' } ).onChange( (s) => { transformation = s; console.log(s);});
 
 	const folderCamera = gui.addFolder( 'Virtual camera' );
 	folderCamera.add( params, 'Position inside &harr; outside lookalike sphere' );
@@ -541,6 +769,41 @@ function createGUI() {
 	folderSettings.add( params, 'FOV env.-facing camera', 10, 170, 1).onChange( (fov) => { fovE = fov; updateUniforms(); });   
 	folderSettings.add( params, 'Restart video streams');
 	folderSettings.close();
+	
+	const folderGyroMode = gui.addFolder('Gyroscope Mode');	
+	controlspheretoggle = folderGyroMode.add ( params, '<b>&beta;</b> direction control').onChange((value) => {
+        if (value) {
+            ControlSphere.visible = true;
+            rearControlSphere.visible = true;
+            dragControls.enabled = true;
+            reardragControls.enabled = true;
+        } else {
+            ControlSphere.visible = false;
+            rearControlSphere.visible = false;
+            dragControls.enabled = false;
+            reardragControls.enabled = false;
+        }
+    });
+	gyroSpeedy = folderGyroMode.add(params, '&beta; (= <i>v</i><sub>camera</sub>/<i>c</i>)', -1, 1, 0.01).onChange( (value) => { oldspeed=gyrospeed; gyrospeed = value; updaterealspeed(); 	} );
+	startToggle=folderGyroMode.add(params, 'Start gyroscope mode');
+	gyroSpeedy.hide();
+	controlspheretoggle.hide();
+	folderGyroMode.close();
+	
+	function GyroToggle() {
+		if (isGyroActive) {
+			stopGyro();
+			isGyroActive=!isGyroActive;
+			startToggle.name('Start gyroscope mode');
+			gyroSpeedy.hide();
+			controlspheretoggle.hide();
+			updateTransformationMatrix();			
+		} else {	
+			gyropermission();						
+		}
+	}
+
+
 }
 
 /**
@@ -557,12 +820,31 @@ function setScreenFOV(fov) {
 	screenChanged();
 }
 
+
+
+
+
 /** 
  * Reset the aspect ratio and FOV of the virtual cameras.
  * 
  * Call if the window size has changed (which also happens when the screen orientation changes)
  * or if camera's FOV has changed
  */
+
+function screenstatus() {
+	let orientation = screen.orientation || screen.mozOrientation || screen.msOrientation;
+
+    if (orientation.type.startsWith('portrait')) {
+        screenOrientationStatus = 'portrait';
+    } else if (orientation.type === 'landscape-primary') {
+        screenOrientationStatus = 'rightlandscape';
+    } else if (orientation.type === 'landscape-secondary') {
+        screenOrientationStatus = 'leftlandscape';
+    } else {
+        screenOrientationStatus = 'unknown';
+    }
+}
+
 function screenChanged() {
 	// alert(`new window size ${window.innerWidth} x ${window.innerHeight}`);
 
@@ -610,6 +892,19 @@ function changePosition() {
 	 	default:
 			changeCamera('outside lookalike sphere');
 	}
+
+	controlRadiusStart = controlradius;//new
+    sizeRadiusStart = sizeradius;
+    if (cameraPosition === 'outside lookalike sphere') {
+        controlRadiusTarget = 2.0; // 设置为外部值
+        sizeRadiusTarget = 0.07;   // 设置为外部值
+    } else {
+        controlRadiusTarget = 0.2; // 设置为内部值
+        sizeRadiusTarget = 0.005;  // 设置为内部值
+    }
+    radiusAnimationStartTime = Date.now();
+    radiusAnimationTargetTime = radiusAnimationStartTime + 2000; // 2秒动画时间
+    radiusAnimation = true;
 }
 
 function changeCamera(newCameraPosition) {
@@ -664,8 +959,244 @@ function updateUniforms() {
 	}
 }
 
+
+//call in updateTransformationMatrix
+function checkgyromode() {
+	if (isGyroActive){
+	
+		if (isdragstart) {	// update coordinates according to the drag
+			let interX=Math.abs(gyrospeed)*Math.sin(dragtheta)*Math.sin(dragphi); 	// calculate coordinates in camera frame
+			let interY=Math.abs(gyrospeed)*Math.cos(dragtheta);
+			let interZ=Math.abs(gyrospeed)*Math.sin(dragtheta)*Math.cos(dragphi);
+			let screenpoint = new THREE.Vector3();
+			
+			if (screenOrientationStatus === 'portrait') {	// check orientation
+				screenpoint.set(interX, interY, interZ);
+			} else if (screenOrientationStatus === 'leftlandscape') {
+				screenpoint.set(interY, -interX, interZ);
+			} else if (screenOrientationStatus === 'rightlandscape') {
+				screenpoint.set(-interY, interX, interZ);	
+			}
+			
+			camtoreal(deviceAlpha,deviceBeta,deviceGamma, screenpoint); // update to scene frame
+			
+			realspeedpoint=screenpoint.clone();
+		}	else {
+
+		}
+      	let Realsppoint=realspeedpoint.clone(); // update coordinates according to the gyroscope
+
+		realtocam(deviceAlpha,deviceBeta,deviceGamma, Realsppoint);  
+
+		let cameraspeedpoint=Realsppoint.clone();
+
+		if (screenOrientationStatus === 'portrait') { // check device orientation
+		betaX=cameraspeedpoint.x;
+		betaY=cameraspeedpoint.y;
+		betaZ=cameraspeedpoint.z;
+		}	else if (screenOrientationStatus === 'leftlandscape')	{
+		betaX=-cameraspeedpoint.y;
+		betaY=cameraspeedpoint.x;
+		betaZ=cameraspeedpoint.z;
+		}	else if (screenOrientationStatus === 'rightlandscape')	{
+		betaX=cameraspeedpoint.y;
+		betaY=-cameraspeedpoint.x;
+		betaZ=cameraspeedpoint.z;
+		}
+
+		updatetocontrolsphere(); // update control sphere coordinates and colors
+		updateControlSphereColor(gyrospeed);
+		//setInfo(`betaX = ${betaX.toFixed(2)}, betaY = ${betaY.toFixed(2)}, betaZ = ${betaZ.toFixed(2)}`);
+		//setInfo(`Initial Orientation: alpha = ${initialAlpha.toFixed(2)}, beta = ${initialBeta.toFixed(2)}, gamma = ${initialGamma.toFixed(2)}`);
+	} else {
+		betaX=storedbetaX;
+		betaY=storedbetaY;
+		betaZ=storedbetaZ;
+	}
+}
+
+function gyropermission() {	
+	
+	if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+       // document.body.addEventListener('click', function() {
+            DeviceOrientationEvent.requestPermission()
+                .then(function() {
+					//console.log('DeviceOrientationEvent enabled');
+                    window.addEventListener('deviceorientation', handleOrientation);                    
+					permission = true;
+					isGyroActive=!isGyroActive;			
+					startToggle.name('Stop gyroscope mode');
+					gyroSpeedy.show();
+					controlspheretoggle.show();
+					ControlSphere.visible= true;
+					rearControlSphere.visible= true;
+					dragControls.enabled= true;
+					reardragControls.enabled= true;
+					initialAlpha=undefined;
+					initialBeta=undefined;
+					initialGamma=undefined;
+					setInfo('Gyroscope mode started');  																			              
+                })
+                .catch(function(error) {
+                    console.warn('DeviceOrientationEvent not enabled', error);
+					permission = false;
+					setInfo('Permission denied. Please clear your browser cache and cookies, then try again.');
+                })
+       // })
+    } else {       
+		permission = true;
+		isGyroActive=!isGyroActive;			
+		startToggle.name('Stop gyroscope mode');
+		gyroSpeedy.show();
+		controlspheretoggle.show();
+		ControlSphere.visible= true;
+		rearControlSphere.visible= true;
+		dragControls.enabled= true;
+		reardragControls.enabled= true;
+		initialAlpha=undefined;
+		initialBeta=undefined;
+		initialGamma=undefined;			
+		setInfo('Gyroscope mode started'); 
+    }
+	//window.addEventListener("deviceorientation", handleOrientation, true);
+}
+
+function stopGyro() {
+    window.removeEventListener('deviceorientation', handleOrientation);
+    //console.log('DeviceOrientationEvent disabled');	
+	deviceAlpha=0;
+	deviceBeta=0;
+	deviceGamma=0;
+	ControlSphere.visible= false;
+	rearControlSphere.visible= false;
+	dragControls.enabled= false;
+	reardragControls.enabled= false;
+	setInfo('Gyroscope mode stopped'); 
+}
+
+function camtoreal(Alpha, Beta, Gamma, inputVector3) {
+	let customs = new THREE.Matrix4();
+    let camtorealMatrix = new THREE.Matrix4();
+    
+    camtorealMatrix.multiply(customs.makeRotationZ(Alpha * Math.PI / 180));
+    camtorealMatrix.multiply(customs.makeRotationX(Beta * Math.PI / 180));
+    camtorealMatrix.multiply(customs.makeRotationY(Gamma * Math.PI / 180));
+    
+    inputVector3.applyMatrix4(camtorealMatrix);
+    
+    return inputVector3;
+}
+
+function realtocam(Alpha, Beta, Gamma, inputVector3) {
+	let customs = new THREE.Matrix4();
+    let realtocamMatrix = new THREE.Matrix4();
+    
+    realtocamMatrix.multiply(customs.makeRotationY(-Gamma*Math.PI/180));  	
+	realtocamMatrix.multiply(customs.makeRotationX(-Beta*Math.PI/180));		
+	realtocamMatrix.multiply(customs.makeRotationZ(-Alpha*Math.PI/180)); 
+    
+    inputVector3.applyMatrix4(realtocamMatrix);
+    
+    return inputVector3;
+}
+
+function updaterealspeed() {	// call when gyrospeed changes
+	if (gyrospeed===0) {
+		gyrospeed=0.01;
+	}	else	{
+
+	}
+		let spscale;
+		let oldx = realspeedpoint.x,  oldy = realspeedpoint.y, oldz = realspeedpoint.z;
+		let SP=Math.sqrt(oldx*oldx+oldy*oldy+oldz*oldz);
+	if (( gyrospeed>=0 && oldspeed>=0) || ( gyrospeed<0 && oldspeed<0 )) {
+		spscale=Math.abs(gyrospeed)/SP;
+	}	else {
+		if(gyrospeed>=0) {
+			spscale=-gyrospeed/SP;
+		}	else {
+			spscale=gyrospeed/SP;
+		}
+		
+	}
+	
+	let newspeed= new THREE.Vector3(oldx*spscale, oldy*spscale, oldz*spscale);
+		
+	realspeedpoint=newspeed.clone();	
+}
+
+function handleOrientation(event) {
+	permission= true;
+	if (initialAlpha === undefined && initialBeta === undefined && initialGamma === undefined) {
+        initialAlpha = event.alpha;
+        initialBeta = event.beta;
+        initialGamma = event.gamma;
+		let initialpoint= new THREE.Vector3 (0, 0, -gyrospeed);
+		camtoreal(initialAlpha, initialBeta, initialGamma, initialpoint);
+		realspeedpoint=initialpoint.clone();
+		//setInfo(`Initial Orientation: alpha = ${initialAlpha.toFixed(2)}, beta = ${initialBeta.toFixed(2)}, gamma = ${initialGamma.toFixed(2)}`);
+    }
+	deviceAlpha = event.alpha;
+ 	deviceBeta = event.beta;
+ 	deviceGamma = event.gamma;
+
+	 if (event.alpha === null || event.alpha === undefined) {
+        setInfo('Permission denied. Please clear your browser cache and cookies, then try again.');        
+    }
+  	 	//  let ceshix=realspeedpoint.x;
+		//  let ceshiy=realspeedpoint.y;
+		//  let ceshiz=realspeedpoint.z;
+		//  setInfo(`real xyz: x = ${ceshix.toFixed(2)}, y = ${ceshiy.toFixed(2)}, z = ${ceshiz.toFixed(2)}`);
+ 	// Do stuff with the new orientation data
+ 	//setInfo(`Orientation: &alpha; = ${deviceAlpha.toFixed(2)}, &beta; = ${deviceBeta.toFixed(2)}, &gamma; = ${deviceGamma.toFixed(2)}`);
+   }
+
+function updateControlSphere() {
+    ControlSphere.position.set(0, 0, -controlradius);
+    ControlSphere.geometry.dispose();
+    ControlSphere.geometry = new THREE.SphereGeometry(sizeradius, 32, 32);
+
+	if (ControlSphere.children.length > 0) {
+        let outlineMesh = ControlSphere.children[0];
+        outlineMesh.geometry.dispose();
+        outlineMesh.geometry = new THREE.SphereGeometry(0.1 * sizeradius + sizeradius, 32, 32);
+    }
+}
+
+function updateRearControlSphere() {
+    rearControlSphere.position.set(0, 0, controlradius);
+    rearControlSphere.geometry.dispose();
+    rearControlSphere.geometry = new THREE.SphereGeometry(sizeradius, 32, 32);
+
+	if (rearControlSphere.children.length > 0) {
+        let outlineMesh = rearControlSphere.children[0];
+        outlineMesh.geometry.dispose();
+        outlineMesh.geometry = new THREE.SphereGeometry(0.1 * sizeradius + sizeradius, 32, 32);
+    }
+}
+
+function updatetocontrolsphere() {
+	let normalizer = Math.sqrt(betaX*betaX + betaY*betaY + betaZ*betaZ);
+	let newpointX = controlradius*(betaX/normalizer);
+	let newpointY = controlradius*(betaY/normalizer);
+	let newpointZ = controlradius*(betaZ/normalizer);
+	ControlSphere.position.set(newpointX, newpointY, newpointZ);
+	rearControlSphere.position.set(-newpointX, -newpointY, -newpointZ);	
+		
+		dragtheta=Math.acos(newpointY/controlradius);
+		let dragphi1=Math.atan2(newpointX, newpointZ);
+	
+		if (dragphi1 < 0) {
+			dragphi = dragphi1+2* Math.PI;
+		} else {
+			dragphi = dragphi1;
+		}
+				
+}
+
 function updateTransformationMatrix() {
 	//transform to theta and phi
+	checkgyromode();
 	let beta2 = betaX*betaX + betaY*betaY + betaZ*betaZ;
 	if (beta2 >= 1 ){
 		// don't actually update the transformation matrix, but leave it as is
@@ -706,11 +1237,10 @@ function updateTransformationMatrix() {
 		transformationMatrix2.makeRotationX(-theta);
 		transformationMatrix2.multiply(m.makeRotationY(-phi));
 
+		
 		// rotate the lookalike sphere according to the device orientation
 		// see https://developer.mozilla.org/en-US/docs/Web/API/Device_orientation_events/Using_device_orientation_with_3D_transforms
-		// transformationMatrix.multiply(m.makeRotationZ(deviceAlpha*Math.PI/180));
-		// transformationMatrix.multiply(m.makeRotationX(-deviceBeta*Math.PI/180));
-		// transformationMatrix.multiply(m.makeRotationY(deviceGamma*Math.PI/180));
+			
 
 		circles.matrix.copy(transformationMatrix1);
 		// greenCircle.matrix.copy(transformationMatrix1);
@@ -718,6 +1248,7 @@ function updateTransformationMatrix() {
 
 		// set the lookalike sphere's transformation matrix to the matrix we just calculated
 		transformationMatrix1.multiply(transformationMatrix2);
+		//transformationMatrix1.multiply(transformationMatrix3);
 		lookalikeSphere.matrix.copy(transformationMatrix1);
 
 		if(shaderMaterial.uniforms.warning.value) {
@@ -756,6 +1287,7 @@ function  pointBackward() {
 }
 
 function pointBeta() {
+	checkgyromode();
 	let beta2 = betaX*betaX + betaY*betaY + betaZ*betaZ;
 	if(beta2 > 0) {
 		let beta = new THREE.Vector3(betaX, betaY, betaZ).setLength(camera.position.length());
@@ -776,6 +1308,7 @@ function pointBeta() {
 }
 
 function pointMinusBeta() {
+	checkgyromode();
 	let beta2 = betaX*betaX + betaY*betaY + betaZ*betaZ;
 	if(beta2 > 0) {
 		let beta = new THREE.Vector3(betaX, betaY, betaZ).setLength(camera.position.length());
@@ -788,6 +1321,7 @@ function pointMinusBeta() {
 }
 
 function pointBetaPlus90() {
+	checkgyromode();
 	let beta2 = betaX*betaX + betaY*betaY + betaZ*betaZ;
 	if(beta2 > 0) {
 		let beta = new THREE.Vector3(betaX, betaY, betaZ).setLength(camera.position.length());
@@ -801,6 +1335,7 @@ function pointBetaPlus90() {
 }
 
 function pointBetaMinus90() {
+	checkgyromode();
 	let beta2 = betaX*betaX + betaY*betaY + betaZ*betaZ;
 	if(beta2 > 0) {
 		let beta = new THREE.Vector3(betaX, betaY, betaZ).setLength(camera.position.length());
