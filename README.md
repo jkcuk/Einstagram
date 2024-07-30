@@ -37,3 +37,8 @@ For the simulation to be correct, the FOV of the (user-facing and environment-fa
 The FOV of the screen represents the angle, in degrees, subtended by the screen from the viewer's position.  Changing it effectively zooms in and out of the view without affecting the distortion.
 
 Some devices have only a single camera, and other devices do not allow simultaneous video streaming from both cameras.  The behaviour is then device- and browser-dependent.
+
+## Changelog
+### [Version 1.0.1] - 2024-07-31
+#### Added
+- Added Gyroscope Mode feature, which uses gyroscope and draggable spheres to control velocity direction and magnitude.
