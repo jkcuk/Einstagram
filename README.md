@@ -39,6 +39,6 @@ The FOV of the screen represents the angle, in degrees, subtended by the screen 
 Some devices have only a single camera, and other devices do not allow simultaneous video streaming from both cameras.  The behaviour is then device- and browser-dependent.
 
 ## Changelog
-### [Version 1.0.1] - 2024-07-31
+### [Version 1.1.0] - 2024-07-31
 #### Added
 - Added Gyroscope Mode feature, which uses gyroscope and draggable spheres to control velocity direction and magnitude.
