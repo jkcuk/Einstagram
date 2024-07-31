@@ -43,7 +43,7 @@ Some devices have only a single camera, and other devices do not allow simultane
 #### Added
 - Added Gyroscope Mode feature, which uses gyroscope and draggable spheres to control velocity direction and magnitude.
 
-  ### Fixed
+#### Fixed
 - Fixed the compatibility of `deviceorientation` across different operating systems.
 - Fixed the compatibility of `orientation.type` across different operating systems.
 
