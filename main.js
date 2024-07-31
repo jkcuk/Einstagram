@@ -576,8 +576,7 @@ function addOrbitControls() {
 	controls.dampingFactor = 0.05;
 
 	controls.enablePan = false;
-	controls.enableZoom = true;
-	//setInfo('相机拖动启用');
+	controls.enableZoom = true;	
 
 	// allowing control of the distance can result in the view being no longer 
 	// centred on the origin, so don't allow it
@@ -906,14 +905,14 @@ function changePosition() {
 	controlRadiusStart = controlradius;//new
     sizeRadiusStart = sizeradius;
     if (cameraPosition === 'outside lookalike sphere') {
-        controlRadiusTarget = 2.0; // 设置为外部值
-        sizeRadiusTarget = 0.07;   // 设置为外部值
+        controlRadiusTarget = 2.0; 
+        sizeRadiusTarget = 0.07;   
     } else {
-        controlRadiusTarget = 0.2; // 设置为内部值
-        sizeRadiusTarget = 0.005;  // 设置为内部值
+        controlRadiusTarget = 0.2; 
+        sizeRadiusTarget = 0.005;  
     }
     radiusAnimationStartTime = Date.now();
-    radiusAnimationTargetTime = radiusAnimationStartTime + 2000; // 2秒动画时间
+    radiusAnimationTargetTime = radiusAnimationStartTime + 2000; 
     radiusAnimation = true;
 }
 
