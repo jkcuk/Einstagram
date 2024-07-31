@@ -837,9 +837,19 @@ function screenstatus() {
     if (orientation.type.startsWith('portrait')) {
         screenOrientationStatus = 'portrait';
     } else if (orientation.type === 'landscape-primary') {
-        screenOrientationStatus = 'rightlandscape';
+        if (isIOS()) {
+			screenOrientationStatus = 'rightlandscape';
+		}
+		else {
+			screenOrientationStatus = 'leftlandscape';
+		}
     } else if (orientation.type === 'landscape-secondary') {
-        screenOrientationStatus = 'leftlandscape';
+		if (isIOS()) {
+			screenOrientationStatus = 'leftlandscape';
+		}
+		else {
+			screenOrientationStatus = 'righttlandscape';
+		}
     } else {
         screenOrientationStatus = 'unknown';
     }
@@ -1015,10 +1025,14 @@ function checkgyromode() {
 	}
 }
 
+function isIOS() {
+	return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+
 function gyropermission() {	
-	
+	if (isIOS())	{
 	if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-       // document.body.addEventListener('click', function() {
+        //document.body.addEventListener('click', function() {
             DeviceOrientationEvent.requestPermission()
                 .then(function() {
 					//console.log('DeviceOrientationEvent enabled');
@@ -1058,7 +1072,23 @@ function gyropermission() {
 		initialGamma=undefined;			
 		setInfo('Gyroscope mode started'); 
     }
-	//window.addEventListener("deviceorientation", handleOrientation, true);
+}	else {
+	window.addEventListener("deviceorientation", handleOrientation, true);
+					permission = true;
+					isGyroActive=!isGyroActive;			
+					startToggle.name('Stop gyroscope mode');
+					gyroSpeedy.show();
+					controlspheretoggle.show();
+					ControlSphere.visible= true;
+					rearControlSphere.visible= true;
+					dragControls.enabled= true;
+					reardragControls.enabled= true;
+					initialAlpha=undefined;
+					initialBeta=undefined;
+					initialGamma=undefined;
+					setInfo('Gyroscope mode started'); 
+}
+	
 }
 
 function stopGyro() {
